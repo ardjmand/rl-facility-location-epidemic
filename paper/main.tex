@@ -78,10 +78,10 @@
 %% AMA style
 %\usepackage{numcompress}\bibliographystyle{model6-num-names}
 
-%% `Elsevier LaTeX' style
-\bibliographystyle{elsarticle-num} %desabled by Alireza
+%% `Elsevier LaTeX' style (doesn't support \citet author names)
+% \bibliographystyle{elsarticle-num}
 % \bibliographystyle{plainnat}
-% \bibliographystyle{abbrvnat}
+\bibliographystyle{abbrvnat}  % Supports \citet with numbered citations
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -115,6 +115,68 @@ TBD \dots
 \section{Introduction} \label{sec:intro}
 
 \section{Literature Review} \label{sec:LitRev}
+
+The problem addressed in this study lies at the intersection of several research streams: epidemic modeling on contact networks, reinforcement learning for public health intervention, dynamic facility location, and vaccine allocation optimization. This section provides a comprehensive review of these interconnected domains and identifies the research gap that the present work aims to fill.
+
+\subsection{Epidemic Modeling on Contact Networks}
+
+The mathematical modeling of infectious disease spread has evolved significantly from the seminal work of \citet{kermack1927contribution}, who introduced compartmental models assuming homogeneous mixing within populations. However, the recognition that human contact patterns are inherently heterogeneous has driven the development of network-based epidemic models \cite{Keeling2005, danon2011networks}.
+
+\citet{PastorSatorras2001} demonstrated a fundamental result: in scale-free networks where degree distributions follow a power law, the epidemic threshold effectively vanishes, allowing infections to persist even at arbitrarily low transmission rates. This finding underscored the critical importance of network topology in determining epidemic outcomes. \citet{Newman2002} extended these results by developing exact solutions for SIR epidemics on networks with arbitrary degree distributions using generating function methods.
+
+The comprehensive review by \citet{pastor2015epidemic} established that network structure profoundly influences epidemic dynamics, including the basic reproduction number, final epidemic size, and effectiveness of intervention strategies. \citet{kiss2017mathematics} provided a unified mathematical framework connecting graph theory, stochastic processes, and dynamical systems for epidemic modeling, introducing tools such as pairwise approximation and edge-based compartmental models.
+
+More recent work has incorporated realistic features such as waning immunity and breakthrough infections. The COVID-19 pandemic highlighted that vaccine-induced and infection-acquired immunity can diminish over time \cite{kaminska2022immunity}, and vaccinated individuals may still become infected \cite{brown2021outbreak, covid2021covid}. These observations motivate the \ac{SIV} model employed in the present study, which captures both waning immunity ($V \to S$) and breakthrough infections ($V \to I$).
+
+\subsection{Reinforcement Learning for Epidemic Control}
+
+The application of \ac{RL} to epidemic control has gained substantial momentum, particularly following the COVID-19 pandemic. \citet{ohi2020exploring} applied deep Q-networks to optimize movement restrictions in SEIR models, demonstrating that RL agents could learn to balance epidemic control against economic costs. \citet{kwak2021deep} trained dueling double deep Q-network agents on epidemiological data from 216 countries, finding that RL-based policies recommended earlier and more intensive interventions than those implemented by governments.
+
+The simulation-deep reinforcement learning (SiRL) framework proposed by \citet{bushaj2023simulation} combined agent-based epidemic simulation with deep RL, showing that RL-guided vaccination strategies could reduce infections by up to 32\% compared to heuristic approaches. \citet{mai2023planning} demonstrated that Proximal Policy Optimization (PPO) is particularly robust for epidemic intervention planning, requiring less hyperparameter tuning than alternative algorithms while achieving superior performance.
+
+Several studies have specifically addressed vaccine allocation using RL. \citet{rey2023vaccine} developed RL-based vaccine allocation policies with budget-sharing mechanisms, while \citet{hao2022reinforcement} employed hierarchical RL for large-scale COVID-19 vaccine allocation, achieving 9--12\% reductions in infections and deaths compared to baseline strategies. \citet{awasthi2022vacsim} introduced VacSIM, an RL framework for learning vaccine distribution strategies that accounts for demographic heterogeneity.
+
+The integration of \ac{RL} with \ac{GNN} for epidemic control represents a recent advancement. \citet{ling2024cooperating} proposed cooperating GNNs with deep RL for vaccine prioritization, capturing structural properties of mobility contact networks. \citet{ardjmand2024guided} developed a guided twin delayed deep deterministic policy gradient (TD3) approach for vaccine allocation in contact networks, demonstrating superiority over centrality-based heuristics.
+
+\subsection{Dynamic Facility Location Problems}
+
+The facility location problem, a classical topic in operations research, has been extensively studied in both static and dynamic settings \cite{Belanger2019}. The dynamic facility location problem extends the classical formulation to multi-period settings where facilities can be opened, closed, or relocated over time in response to changing demand patterns.
+
+\citet{Jena2016} addressed dynamic facility location with partial closing and reopening through modular capacity frameworks, developing Lagrangian relaxation-based heuristics for large-scale instances. \citet{Silva2021} proposed heuristics for the dynamic facility location problem with modular capacities, combining linear relaxation methods with hybrid genetic algorithms. These studies established that accounting for opening and closing costs significantly affects optimal facility configurations over time.
+
+Recent work has addressed uncertainty and disruptions in facility location. \citet{Cheng2021} developed robust facility location models that simultaneously consider demand uncertainty and facility disruptions using two-stage robust optimization. \citet{Gourtani2020} formulated two-stage distributionally robust facility location problems that hedge against incomplete distributional information.
+
+The application of machine learning to facility location is emerging. \citet{Miao2024} recently applied deep reinforcement learning to the multi-period $p$-median dynamic location problem, explicitly considering temporal impacts of location decisions across planning horizons. This represents one of the first applications of deep RL to dynamic facility location, though it did not consider epidemic dynamics or vaccination contexts.
+
+\subsection{Vaccine Allocation and Spatial Accessibility}
+
+Optimal vaccine allocation has been studied extensively from both epidemiological and operations research perspectives \cite{duijzer2018literature, blasioli2023vaccine}. Mathematical modeling approaches have addressed age-based prioritization \cite{bubar2021model, matrajt2021vaccine}, occupation-based strategies \cite{nunner2022prioritizing, buckner2021dynamic}, and network-based allocation \cite{chen2022effective, saunders2021covid}.
+
+Spatial accessibility to vaccination services significantly affects uptake rates \cite{sharma2020understanding}. \citet{venkatramanan2019optimizing} optimized spatial allocation of seasonal influenza vaccines under temporal constraints, demonstrating that geographic targeting can outperform age-based prioritization. \citet{scroggins2023spatial} applied spatial optimization to COVID-19 vaccine distribution, finding that optimized allocation could decrease case incidence by 8\% while preventing over 100 deaths.
+
+The deployment of mobile and temporary vaccination sites has received attention for improving accessibility and equity. \citet{li2022deploying} formulated mobile vaccination site deployment as a dynamic $k$-supplier problem, developing approximation algorithms that balance accessibility with equity considerations. Distance-decay models for vaccination behavior, where uptake decreases with distance to vaccination sites, have been validated empirically and incorporated into optimization models \cite{orgut2023equitable}. However, these models typically assume static facility configurations rather than dynamic opening and closing decisions responsive to evolving epidemic conditions.
+
+\subsection{Graph Neural Networks for Combinatorial Optimization}
+
+Graph neural networks have emerged as powerful tools for combinatorial optimization problems \cite{cappart2023combinatorial}. The foundational work of \citet{dai2017learning} combined reinforcement learning with graph embeddings for NP-hard problems including vertex cover and traveling salesman, demonstrating that learned policies can generalize to problem instances larger than those seen during training.
+
+\citet{kool2019attention} introduced attention-based models for routing problems, achieving near-optimal results on TSP instances and extending to vehicle routing variants. \citet{gasse2019exact} applied graph convolutional networks to branch-and-bound variable selection in mixed-integer linear programming, representing MILPs as bipartite graphs and outperforming expert-designed branching rules.
+
+Heterogeneous graph neural networks, which handle graphs with multiple node and edge types, are particularly relevant for problems involving different entity types. \citet{wang2019heterogeneous} introduced hierarchical attention mechanisms for heterogeneous graphs, enabling automatic discovery of important relationship types. Applications of GNNs to epidemic modeling have begun to emerge, with \citet{panagopoulos2021transfer} developing transfer GNNs for COVID-19 forecasting using meta-learning approaches.
+
+\subsection{Research Gap and Contributions}
+
+Despite the substantial body of work reviewed above, a significant gap remains at the intersection of these research streams. Existing studies on \ac{RL} for epidemic control have primarily focused on population-level interventions such as lockdowns or aggregate vaccine allocation, without explicitly modeling the spatial dynamics of vaccination facility access. Conversely, facility location research has largely addressed static or slowly-varying demand patterns, without coupling to the rapid dynamics of epidemic spread on contact networks.
+
+The present study addresses this gap by formulating a novel problem that integrates:
+\begin{itemize}
+    \item \textbf{Network-based epidemic dynamics}: Disease spread is modeled on explicit contact networks using an \ac{SIV} compartmental model that captures waning immunity and breakthrough infections.
+    \item \textbf{Spatial vaccination accessibility}: Vaccination rates depend on individuals' distances to open facilities, creating a direct coupling between facility decisions and epidemic dynamics.
+    \item \textbf{Dynamic facility decisions}: Facilities can be opened or closed over time, with associated transition costs, allowing adaptation to evolving epidemic conditions.
+    \item \textbf{Reinforcement learning optimization}: A deep \ac{RL} approach with graph neural network policy representations learns optimal facility control policies that minimize total costs including infection burden, vaccination costs, and facility operations.
+\end{itemize}
+
+To the best of the authors' knowledge, this is the first study to address dynamic vaccination facility location as a sequential decision problem on contact networks using reinforcement learning. The integration of heterogeneous graph neural networks enables the policy to capture both the contact network structure and the spatial relationships between individuals and facilities, while the mean-field analytical framework provides theoretical insights that guide algorithm development and enable systematic performance evaluation.
 
 \section{Problem Statement} \label{sec:ProbStat}
 
