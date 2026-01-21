@@ -228,15 +228,23 @@ python main.py
 
 ### Training PPO Agent
 
+Each training run automatically creates timestamped subfolders for checkpoints and logs:
+- `outputs/checkpoints/run_YYYYMMDD_HHMMSS/` - All checkpoints for the run
+- `outputs/logs/run_YYYYMMDD_HHMMSS/` - All logs (TensorBoard + JSONL) for the run
+
 ```bash
 # All commands should be run from the code/ directory
 cd code
 
 # Basic training (1M timesteps, domain randomization enabled)
+# Creates: outputs/checkpoints/run_YYYYMMDD_HHMMSS/ and outputs/logs/run_YYYYMMDD_HHMMSS/
 python scripts/train_ppo.py --total-timesteps 1000000 --seed 42
 
 # Quick test training (smaller scale)
 python scripts/train_ppo.py --total-timesteps 10000 --n-steps 256 --batch-size 32
+
+# Training with custom run name
+python scripts/train_ppo.py --total-timesteps 500000 --run-name my_experiment_v1
 
 # Training with custom hyperparameters
 python scripts/train_ppo.py \
@@ -246,13 +254,13 @@ python scripts/train_ppo.py \
     --num-gnn-layers 4 \
     --checkpoint-freq 25000
 
-# Resume training from checkpoint
-python scripts/train_ppo.py --resume ../outputs/checkpoints/checkpoint_100000.pt --total-timesteps 200000
+# Resume training from checkpoint (automatically uses same run folder)
+python scripts/train_ppo.py --resume ../outputs/checkpoints/run_20260121_120000/checkpoint_100000.pt --total-timesteps 200000
 
-# Resume training with same TensorBoard and log file (for continuous plots)
-python scripts/train_ppo.py --resume ../outputs/checkpoints/checkpoint_100000.pt --total-timesteps 200000 \
-    --tb-log-dir ../outputs/logs/tensorboard_YYYYMMDD_HHMMSS \
-    --log-file ../outputs/logs/training_YYYYMMDD_HHMMSS.jsonl
+# Resume with explicit TensorBoard and log file paths (for custom setups)
+python scripts/train_ppo.py --resume ../outputs/checkpoints/run_20260121_120000/checkpoint_100000.pt --total-timesteps 200000 \
+    --tb-log-dir ../outputs/logs/run_20260121_120000/tensorboard_20260121_120000 \
+    --log-file ../outputs/logs/run_20260121_120000/training_20260121_120000.jsonl
 ```
 
 ### Evaluating Trained Models
@@ -262,28 +270,28 @@ python scripts/train_ppo.py --resume ../outputs/checkpoints/checkpoint_100000.pt
 cd code
 
 # Evaluate checkpoint against all static baselines on 100 random problems
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final_1000000.pt --num-problems 100
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final_1000000.pt --num-problems 100
 
-# Evaluate multiple checkpoints
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/checkpoint_50000.pt ../outputs/checkpoints/checkpoint_100000.pt --num-problems 50
+# Evaluate multiple checkpoints from same run
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/checkpoint_50000.pt ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/checkpoint_100000.pt --num-problems 50
 
 # Evaluate on saved problems (for reproducible benchmarks)
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final.pt --problem-dir ../data/saved_problems/
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final.pt --problem-dir ../data/saved_problems/
 
 # Select specific baselines only
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final.pt --baselines all_open all_closed
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final.pt --baselines all_open all_closed
 
 # Skip all baselines (only evaluate learned policies)
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final.pt --no-baselines
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final.pt --no-baselines
 
 # Stochastic evaluation with multiple runs per problem
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final.pt --stochastic --runs-per-problem 5
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final.pt --stochastic --runs-per-problem 5
 
 # Save results to CSV and JSON
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final.pt --save-csv --save-json
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final.pt --save-csv --save-json
 
 # Keep generated problems for later reuse
-python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/final.pt --num-problems 100 --keep-problems
+python scripts/evaluate_policies.py --checkpoints ../outputs/checkpoints/run_YYYYMMDD_HHMMSS/final.pt --num-problems 100 --keep-problems
 ```
 
 ### Python REPL for Exploration

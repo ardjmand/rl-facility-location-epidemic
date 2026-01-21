@@ -141,12 +141,12 @@ def parse_args():
         help="Checkpoint every N timesteps (default: 50000)"
     )
     parser.add_argument(
-        "--log-dir", type=str, default="../outputs/logs",
-        help="Directory for logs (default: ./logs)"
+        "--output-dir", type=str, default="../outputs",
+        help="Base output directory (default: ../outputs)"
     )
     parser.add_argument(
-        "--checkpoint-dir", type=str, default="../outputs/checkpoints",
-        help="Directory for checkpoints (default: ./checkpoints)"
+        "--run-name", type=str, default=None,
+        help="Custom run name (default: auto-generated timestamp)"
     )
 
     # Device
@@ -189,6 +189,31 @@ def get_device(device_str: str) -> torch.device:
     return torch.device(device_str)
 
 
+def create_run_directories(output_dir: str, run_name: str = None) -> tuple:
+    """
+    Create timestamped run directories for checkpoints and logs.
+
+    Args:
+        output_dir: Base output directory
+        run_name: Custom run name (auto-generated if None)
+
+    Returns:
+        Tuple of (checkpoint_dir, log_dir, run_name)
+    """
+    if run_name is None:
+        run_name = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    output_path = Path(output_dir)
+    checkpoint_dir = output_path / "checkpoints" / run_name
+    log_dir = output_path / "logs" / run_name
+
+    # Create directories
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    return str(checkpoint_dir), str(log_dir), run_name
+
+
 def main():
     args = parse_args()
 
@@ -198,6 +223,25 @@ def main():
     # Get device
     device = get_device(args.device)
     print(f"Using device: {device}")
+
+    # Create run-specific directories (only for new training, not resume)
+    if args.resume:
+        # When resuming, extract run name from checkpoint path or use provided tb_log_dir/log_file
+        checkpoint_path = Path(args.resume)
+        run_name = checkpoint_path.parent.name
+        output_path = Path(args.output_dir)
+        checkpoint_dir = str(checkpoint_path.parent)
+        log_dir = str(output_path / "logs" / run_name)
+        print(f"Resuming run: {run_name}")
+    else:
+        # Create new run directories
+        checkpoint_dir, log_dir, run_name = create_run_directories(
+            args.output_dir, args.run_name
+        )
+        print(f"Starting new run: {run_name}")
+
+    print(f"  Checkpoint dir: {checkpoint_dir}")
+    print(f"  Log dir: {log_dir}")
 
     # Create configs
     ppo_config = PPOConfig(
@@ -223,8 +267,8 @@ def main():
         decision_interval=args.decision_interval,
         max_episode_steps=args.max_episode_steps,
         seed=args.seed,
-        log_dir=args.log_dir,
-        checkpoint_dir=args.checkpoint_dir,
+        log_dir=log_dir,
+        checkpoint_dir=checkpoint_dir,
     )
 
     # Create environment(s)
@@ -282,8 +326,8 @@ def main():
             config=ppo_config,
             training_config=training_config,
             device=device,
-            log_dir=args.log_dir,
-            checkpoint_dir=args.checkpoint_dir,
+            log_dir=log_dir,
+            checkpoint_dir=checkpoint_dir,
             tb_log_dir=args.tb_log_dir,
             log_file=args.log_file,
         )
@@ -292,6 +336,7 @@ def main():
     print("\n" + "=" * 60)
     print("TRAINING CONFIGURATION")
     print("=" * 60)
+    print(f"  Run name: {run_name}")
     print(f"  Total timesteps: {args.total_timesteps:,}")
     print(f"  Num envs: {args.num_envs}")
     if args.num_envs > 1:
@@ -308,6 +353,8 @@ def main():
     print(f"  PPO epochs: {args.n_epochs}")
     print(f"  GNN layers: {args.num_gnn_layers}")
     print(f"  Hidden dim: {args.hidden_dim}")
+    print(f"  Checkpoint dir: {checkpoint_dir}")
+    print(f"  Log dir: {log_dir}")
     print("=" * 60 + "\n")
 
     try:
