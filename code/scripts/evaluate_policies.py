@@ -644,7 +644,7 @@ Examples:
 
     # Output
     parser.add_argument(
-        "--output-dir", type=Path, default=Path("results"),
+        "--output-dir", type=Path, default=Path("../outputs/results"),
         help="Directory to save results (default: results/)"
     )
     parser.add_argument(

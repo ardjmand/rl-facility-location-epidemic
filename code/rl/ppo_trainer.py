@@ -58,8 +58,8 @@ class PPOTrainer:
         config: PPOConfig,
         training_config: Optional[TrainingConfig] = None,
         device: Optional[torch.device] = None,
-        log_dir: str = "./logs",
-        checkpoint_dir: str = "./checkpoints",
+        log_dir: str = "../outputs/logs",
+        checkpoint_dir: str = "../outputs/checkpoints",
         tb_log_dir: Optional[str] = None,
         log_file: Optional[str] = None,
     ):

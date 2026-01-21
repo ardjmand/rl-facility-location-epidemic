@@ -141,11 +141,11 @@ def parse_args():
         help="Checkpoint every N timesteps (default: 50000)"
     )
     parser.add_argument(
-        "--log-dir", type=str, default="./logs",
+        "--log-dir", type=str, default="../outputs/logs",
         help="Directory for logs (default: ./logs)"
     )
     parser.add_argument(
-        "--checkpoint-dir", type=str, default="./checkpoints",
+        "--checkpoint-dir", type=str, default="../outputs/checkpoints",
         help="Directory for checkpoints (default: ./checkpoints)"
     )
 

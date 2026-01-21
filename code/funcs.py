@@ -274,7 +274,7 @@ class EpidemicEnvironment(MessagePassing):
             ax.legend(loc='upper left')
         plt.tight_layout()
         if save:
-            filename = f"network_{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}.pdf"
+            filename = f"../outputs/figures/network_{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}.pdf"
             plt.savefig(filename, format='pdf')
         plt.show()
 
@@ -475,7 +475,7 @@ class EpidemicEnvironment(MessagePassing):
             plt.legend(loc="upper right")
             plt.tight_layout()
             if save_visualization:
-                plt.savefig("comp_pct.pdf")
+                plt.savefig("../outputs/figures/comp_pct.pdf")
             plt.show()
 
             # Probability of compartments for each individual
@@ -496,7 +496,7 @@ class EpidemicEnvironment(MessagePassing):
                 plt.legend(loc="upper right")
                 plt.tight_layout()
                 if save_visualization:
-                    plt.savefig("comp_pct_ind.pdf")
+                    plt.savefig("../outputs/figures/comp_pct_ind.pdf")
                 plt.show()
 
         if return_details:
