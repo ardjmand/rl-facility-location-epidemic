@@ -57,7 +57,7 @@ data/saved_problems/
 outputs/figures/*.pdf
 outputs/figures/*.png
 
-# LaTeX auxiliary files
+# LaTeX auxiliary files (compiled output)
 paper/*.aux
 paper/*.bbl
 paper/*.blg
@@ -78,8 +78,20 @@ paper/*.nls
 paper/*.ilg
 paper/*.ind
 paper/*.idx
+paper/*.pdf
+paper/*.spl
+paper/*.bcf
+paper/*.run.xml
+paper/*.glg
+paper/*.glo
+paper/*.gls
+paper/*.ist
+paper/*.acn
+paper/*.acr
+paper/*.alg
+paper/*.xdy
 
-# Keep these LaTeX files
+# Keep these LaTeX source files
 !paper/main.tex
 !paper/nomenclature.tex
 !paper/refs.bib
