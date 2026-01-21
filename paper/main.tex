@@ -1,0 +1,225 @@
+\documentclass[3p, sort&compress]{elsarticle}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx,psfrag,epsf}
+\usepackage{enumerate}
+\usepackage{url} % not crucial - just used below for the URL 
+\usepackage[numbers]{natbib} % added by Alireza
+\usepackage{etoolbox}
+\usepackage{lineno}
+\usepackage{hyperref}
+% \usepackage{graphicx} 
+\usepackage{lipsum}
+\usepackage{subcaption}
+\usepackage{amsthm,amssymb}
+\usepackage{bm}% bold math
+\usepackage{hyperref}% add hypertext capabilities
+\usepackage{dsfont}
+% \usepackage[caption=false]{subfig}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{algorithm}
+\usepackage{algcompatible}
+\usepackage{algpseudocode}
+\usepackage[section]{placeins}%This prevents placing floats before a section.
+\usepackage{multirow}
+\usepackage{todonotes}
+\usepackage{caption}
+\usepackage{array,makecell}
+\usepackage{subcaption}
+\usepackage{comment}
+\usepackage{amssymb}
+\usepackage{framed}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage{nomencl}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage[toc, acronym]{glossaries}
+\usepackage[nolist, printonlyused]{acronym}
+\journal{Elsevier}
+
+\makenomenclature
+
+
+\newtheorem{remark}{Remark}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%% Elsevier bibliography styles
+%%%%%%%%%%%%%%%%%%%%%%%
+%% To change the style, put a % in front of the second line of the current style and
+%% remove the % from the second line of the style you would like to use.
+%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Numbered
+% \bibliographystyle{model1-num-names}
+
+%% Numbered without titles
+%\bibliographystyle{model1a-num-names}
+
+%% Harvard
+% \bibliographystyle{model2-names.bst}\biboptions{square,sort,comma,numbers}
+
+%% Vancouver numbered
+% \usepackage{numcompress}\bibliographystyle{model3-num-names}
+
+%% Vancouver name/year
+%\usepackage{numcompress}\bibliographystyle{model4-names}\biboptions{authoryear}
+
+%% APA style
+% \bibliographystyle{model5-names}\biboptions{authoryear}
+
+%% AMA style
+%\usepackage{numcompress}\bibliographystyle{model6-num-names}
+
+%% `Elsevier LaTeX' style
+\bibliographystyle{elsarticle-num} %desabled by Alireza
+% \bibliographystyle{plainnat}
+% \bibliographystyle{abbrvnat}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{document}
+\input{nomenclature}
+	
+\begin{frontmatter  }
+	
+	\title{Dynamic Facility Location via Reinforcement Learning for Epidemic Suppression in Contact Networks}
+	
+	\author[a]{Ehsan Ardjmand\corref{cor1}}
+	\ead{ardjmand@ohio.edu}
+	
+	\cortext[cor1]{Corresponding authors}
+	
+	\address[a]{Department of Analytics and Information Systems, College of Business, Ohio University, OH, USA, 45701}
+	
+\begin{abstract}
+TBD \dots
+\end{abstract}
+	
+\begin{keyword}
+    TBD \dots
+\end{keyword}
+	
+\end{frontmatter}
+
+\section{Introduction} \label{sec:intro}
+
+\section{Literature Review} \label{sec:LitRev}
+
+\section{Problem Statement} \label{sec:ProbStat}
+
+The population's contact structure can be represented by an undirected graph $\mathcal{G}(\mathcal{V}, \mathcal{E})$, where $\mathcal{V} = \{1, 2, \dots, n\}$ denotes the set of individuals (nodes), and $\mathcal{E}$ represents the set of pairwise interactions or contacts (edges) among them. For a given individual $i \in \mathcal{V}$, the neighborhood $\mathcal{N}_i$ consists of all nodes directly connected to $i$, with cardinality $|\mathcal{N}_i| = N_i$.
+
+At any discrete or continuous time $t$, the state of node $i$ is denoted by $X_i^t$, which can assume one of the following three values: susceptible ($S$), infected ($I$), or vaccinated ($V$). In this study, the vaccinated state $V$ is defined broadly to include both individuals who have received vaccination and those who have recovered from infection, under the assumption that both groups possess comparable immunity against the disease.
+
+A node $i$ in the susceptible state ($S$) may become infected ($I$) at a rate proportional to the number of infected neighbors. Specifically, the transition from $S$ to $I$ occurs at a rate of $\beta_1 N_i^I$, where $\beta_1$ is the per-contact infection rate, and $N_i^I = |\mathcal{N}_i^I|$ represents the number of infected neighbors of node $i$ (i.e., the size of the infected subset of $i$’s neighborhood).
+
+Following infection, an individual transitions from the infected state ($I$) to the vaccinated state ($V$) at a recovery rate $\delta$. This transition captures the acquisition of post-infection immunity. However, this immunity is not assumed to be permanent. A node in the vaccinated state ($V$) may experience a breakthrough infection and transition back to the infected state ($I$) at a reduced infection rate of $\beta_2 N_i^I$, where $\beta_2 < \beta_1$ reflects partial immunity. Additionally, immunity may wane over time, and a vaccinated individual may return to the susceptible state ($S$) at a rate $\omega$, capturing the natural decay of immunity.
+
+Apart from acquiring immunity through recovery, a susceptible individual can become vaccinated. The vaccination rate for an individual $i$ is denoted by $\nu_i$ and is modeled as a decreasing function of the individual’s spatial distance to the nearest active vaccination facility. Let $\mathcal{M} = {m_1, m_2, \dots, m_M}$ denote the set of candidate vaccination facility locations, where each $m_j \in \mathbb{R}^2$ is specified by its spatial coordinates. Each individual $i \in \mathcal{V}$ is also assumed to occupy a fixed position $z_i \in \mathbb{R}^2$. If a subset $L \subseteq \mathcal{M}$ of these facilities is selected to be operational, then the vaccination rate for individual $i$ becomes:
+
+\[
+\nu_i(L) = v_{min} +  (v_{max} - v_{min})e^{-\alpha d_i(L)}, \qquad d_i(L) = \min_{m \in L} \| z_i - c \|.
+\]
+\noindent where, $v_{max}$ and $v_{min}$ denote the minimum and maximum achievable vaccination rates, corresponding to zero and infinite distance from a facility, $\alpha > 0$ is a decay parameter controlling how quickly the vaccination rate decreases with increasing distance, and $d_i(L)$ represents the shortest Euclidean distance between individual $i$ and the nearest facility in the active set $L$.
+
+Figure~\ref{fig:MarkovModel} illustrates the corresponding state-transition diagram for this model, along with an example contact network composed of four individuals. Each node resides in one of the three possible states: susceptible ($S$), infected ($I$), or vaccinated ($V$). In this example, two individuals are susceptible, one is infected, and one is vaccinated, highlighting the heterogeneity in state distribution across the network.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{Figs/markov_model.pdf}
+        %\caption{Caption for Image 1}
+        %\label{fig:subfig1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{Figs/graph_markov.pdf}
+        %\caption{Caption for Image 2}
+        %\label{fig:subfig2}
+    \end{subfigure}
+    \caption{Left: The state transition diagram of the \ac{SIV} model representing the disease progression for an individual. Right: A schematic representation of a contact network in which each node follows the dynamics of the \ac{SIV} model. The shadowed compartments indicate the current states (susceptible, infected, or vaccinated) of the individuals within the network.}
+    \label{fig:MarkovModel}
+\end{figure}
+
+This study employs \ac{RL} to dynamically determine the optimal subset of vaccination facilities $L \subseteq \mathcal{M}$ to be open at any given time. To facilitate this process, the time horizon is discretized into $t = 1, 2, \dots, T$ decision steps. At the beginning of each time step, the \ac{RL} agent evaluates the status of each candidate facility $m_j \in \mathcal{M}$ and decides whether it should be opened or closed.
+
+Opening a facility incurs a one-time setup cost denoted by $f^+$, while closing an existing facility incurs a decommissioning cost $f^-$. In addition to these transition costs, each facility that remains operational during a time step incurs a fixed operational cost $C_O$, which accounts for expenses such as personnel, rent, and utilities. The model also includes health-related costs: each vaccinated individual incurs a vaccination cost $C_V$, and each infected individual generates a disease burden cost $C_I$.
+
+The objective of the \ac{RL} agent is to minimize the cumulative cost over the planning horizon. This total cost includes the expenses associated with opening and closing facilities, operational costs, vaccination costs, and the social or economic cost of infections across the population. It is assumed that each open facility has unlimited service capacity within a time step, allowing it to vaccinate any number of individuals. Furthermore, the time required to open or close a facility is considered negligible, and the underlying structure of the contact network is assumed to remain unchanged during these administrative actions.
+
+After the \ac{RL} agent makes its decisions regarding facility operations at the beginning of a time step, the epidemic progresses according to the \ac{SIV} dynamics depicted in Figure~\ref{fig:MarkovModel}. The disease spreads through the contact network while individuals transition among the susceptible, infected, and vaccinated compartments. This interaction between the agent’s strategic decisions and the evolving epidemic continues iteratively at each time step until the final time $T$ is reached, forming a decision-making process between vaccination logistics and disease progression. 
+
+\section{Analytical Model Development} \label{sec:AnalyticalModelDev}
+This section presents an analytical framework based on a mean-field approximation to investigate the dynamics of disease spread in the presence of spatially distributed vaccination facilities. The development of this model serves three primary purposes:
+
+\begin{itemize}
+    \item \textbf{Characterization of Equilibrium Conditions}: The model facilitates the identification of threshold conditions under which the disease either dies out, leading to a \ac{DFE}, or becomes endemic, depending on the configuration of the open vaccination facilities $L$. These insights provide a foundational understanding of how spatial access to vaccination affects long-term epidemiological outcomes.
+    \item \textbf{\ac{RL} Guidance}: The analytical results derived from the model are used to inform and guide the training of the proposed \ac{RL} algorithm, thereby improving the efficiency and robustness of the \ac{RL} training process.
+    \item \textbf{Test Case Design}: The model enables the systematic generation of test scenarios to evaluate the \ac{RL} algorithm’s performance. By varying parameters that govern the underlying dynamics, controlled experimental settings can be designed to benchmark and stress-test the \ac{RL} policy under different dynamic regimes.
+\end{itemize}
+
+In the \ac{SIV} framework illustrated in Figure~\ref{fig:MarkovModel}, let \(s_i, p_i,\) and \(q_i \in [0,1]\) denote, respectively, the probabilities that node \(i \in \mathcal V\) is susceptible (\(S\)), infected (\(I\)), or vaccinated (\(V\)).  Associate with every node a categorical random variable \(X_i \in \{S,I,V\}\) whose realization at time \(t\) is written \(X_i^{t}\).  The vector \(\boldsymbol X^{t}=(X_1^{t},\dots,X_n^{t})\), therefore, captures the instantaneous configuration of the entire contact network. Over an infinitesimal interval \(\Delta t>0\), the state of each node evolves according to a continuous-time Markov chain. Conditional one-step transition probabilities for node \(i\) are
+
+\begin{equation}\label{eq:StochasticModel}
+        \begin{aligned}
+            & \text{Pr}\left(X_i^{t+\Delta t}=I|X_i^t=S, \boldsymbol{X}^t\right) = \beta_1 \Delta t \sum_{j \in \mathcal{N}_i} 1_{\{X_j^t=I\}} + o\left(\Delta t\right) \\
+            & \text{Pr}\left(X_i^{t+\Delta t}=I|X_i^t=V, \boldsymbol{X}^t\right) = \beta_2 \Delta t \sum_{j \in \mathcal{N}_i} 1_{\{X_j^t=I\}} + o\left(\Delta t\right) \\
+            & \text{Pr}\left(X_i^{t+\Delta t}=V|X_i^t=S, \boldsymbol{X}^t\right) = \nu_i(L) \Delta t + o\left(\Delta t\right) \\
+            & \text{Pr}\left(X_i^{t+\Delta t}=V|X_i^t=I, \boldsymbol{X}^t\right) = \delta \Delta t +o\left(\Delta t\right) \\
+            & \text{Pr}\left(X_i^{t+\Delta t}=S|X_i^t=V, \boldsymbol{X}^t\right) = \omega \Delta t +o\left(\Delta t\right)
+        \end{aligned}
+\end{equation}
+
+\noindent where \(\mathcal N_i\) denotes the neighborhood of node \(i\) and $1_{\{\mathcal X\}}$ is the indicator function.  The symbol \(o(\Delta t)\) collects higher-order infinitesimals satisfying $\lim\limits_{\Delta t \to 0} \frac{o(\Delta t)}{\Delta t} = 0$.  Infection rates satisfy \(\beta_{2} < \beta_{1}\) to reflect the partial protection afforded by vaccination, while \(\delta\) and \(\omega\) capture recovery with immunity and waning immunity, respectively. \(\nu_i(L) = v_{min} +  (v_{max} - v_{min})e^{-\alpha d_i(L)}\) models the vaccination rate for node \(i\) where \(v_{\max}\) and \(v_{\min}\) are the maximum and minimum achievable vaccination rate, \(\alpha>0\) is a decay parameter, and \(d_i(L)\) is the shortest-path distance from node \(i\) to the closest vaccination open facility among the set \(L\).
+
+Model~\eqref{eq:StochasticModel} thus encodes the probability that node \(i\) changes compartment during \([t,t+\Delta t]\) given its current compartment and the infection status of its neighbors. Passing to the limit \(\Delta t \to 0\) yields a system of forward equations that forms the basis for both exact stochastic simulations and deterministic mean-field approximations in subsequent analyses.
+
+\section{Mean-Field Approximation of the Stochastic Model}
+
+We define the probabilities:
+\begin{itemize}
+    \item \( S_i(t) = \mathbb{E}[1_{\{X_i^t = S\}}] \): probability node \( i \) is susceptible at time \( t \),
+    \item \( I_i(t) = \mathbb{E}[1_{\{X_i^t = I\}}] \): probability node \( i \) is infected at time \( t \),
+    \item \( V_i(t) = \mathbb{E}[1_{\{X_i^t = V\}}] \): probability node \( i \) is vaccinated at time \( t \).
+\end{itemize}
+
+Assuming a mean-field approximation (independence between node states), we derive the following system of ODEs for each node \( i \):
+
+\begin{equation} \label{eq:meanfield}
+\boxed{
+\begin{aligned}
+\frac{dS_i}{dt} &= - \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j - \nu_i(d_i) S_i + \omega V_i \\
+\frac{dI_i}{dt} &= \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j + \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \delta I_i \\
+\frac{dV_i}{dt} &= \nu_i(d_i) S_i + \delta I_i - \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \omega V_i
+\end{aligned}
+}
+\end{equation}
+
+Here, \( \mathcal{N}_i \) denotes the neighborhood of node \( i \), and:
+\begin{itemize}
+    \item \( \beta_1 \): infection rate from susceptible to infected,
+    \item \( \beta_2 \): infection rate from vaccinated to infected,
+    \item \( \nu_i(L) \): vaccination rate for susceptible nodes,
+    \item \( \delta \): transition rate from infected to vaccinated,
+    \item \( \omega \): transition rate from vaccinated to susceptible.
+\end{itemize}
+
+
+\bibliography{refs}
+% \printnomenclature
+
+
+
+\end{document}
+

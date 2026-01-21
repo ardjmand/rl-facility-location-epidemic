@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# PyTorch / ML
+*.pt
+*.pth
+*.ckpt
+outputs/checkpoints/*
+!outputs/checkpoints/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# Large data files
+data/raw/
+data/processed/
+data/saved_problems/
+
+# Generated outputs (keep structure, ignore contents)
+outputs/figures/*.pdf
+outputs/figures/*.png
+
+# LaTeX auxiliary files
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/*.toc
+paper/*.lof
+paper/*.lot
+paper/*.nav
+paper/*.snm
+paper/*.vrb
+paper/*.dvi
+paper/*.nlo
+paper/*.nls
+paper/*.ilg
+paper/*.ind
+paper/*.idx
+
+# Keep these LaTeX files
+!paper/main.tex
+!paper/nomenclature.tex
+!paper/refs.bib
+!paper/figures/*.tex
+!paper/figures/*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.jsonl
+!outputs/logs/.gitkeep
