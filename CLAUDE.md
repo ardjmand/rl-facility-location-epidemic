@@ -87,10 +87,10 @@ RL-facility-location-epidemic/
 ├── README.md                 # Project overview
 ├── .gitignore                # Git ignore patterns
 │
-├── paper/                    # LaTeX paper files
+├── paper/                    # LaTeX paper files (Elsevier format)
 │   ├── main.tex              # Main document
-│   ├── nomenclature.tex      # Nomenclature definitions
-│   ├── refs.bib              # Bibliography
+│   ├── nomenclature.tex      # Acronym definitions (uses `acronym` package)
+│   ├── refs.bib              # Bibliography (~130 references)
 │   └── figures/              # Paper figures (TikZ, PDF)
 │       ├── graph_markov.tex
 │       ├── graph_markov.pdf
@@ -880,6 +880,80 @@ Batched observations → forward_batched() → Single GNN pass → Batched actio
 - Gradient anomaly detection enabled (`torch.autograd.set_detect_anomaly(True)`)
 - Heavy use of boolean masking for vectorized state transitions
 - Type hints are minimal; code is research-oriented rather than production-ready
+
+## Paper (`paper/`)
+
+The paper is written in LaTeX using the Elsevier `elsarticle` document class.
+
+### Paper Structure and Status
+
+| Section | Label | Status |
+|---------|-------|--------|
+| Introduction | `sec:intro` | Complete |
+| Literature Review | `sec:LitRev` | Complete |
+| Problem Statement | `sec:ProbStat` | Complete |
+| Analytical Model Development | `sec:AnalyticalModelDev` | Complete |
+| Mean-Field Approximation | (subsection) | Complete |
+| RL Methodology | `sec:RLMethod` | Not yet written |
+| Experiments | `sec:Experiments` | Not yet written |
+| Conclusions | `sec:Conclusions` | Not yet written |
+
+### Abbreviation Management
+
+All abbreviations are managed using the `acronym` LaTeX package. Definitions are in `nomenclature.tex`.
+
+**Defined Acronyms:**
+
+| Category | Acronym | Expansion |
+|----------|---------|-----------|
+| Epidemic Models | SIV | susceptible-infected-vaccinated |
+| | SIR | susceptible-infected-recovered |
+| | SEIR | susceptible-exposed-infected-recovered |
+| | DFE | disease-free equilibrium |
+| ML/RL | RL | reinforcement learning |
+| | GNN | graph neural network |
+| | ANN | artificial neural network |
+| | PPO | Proximal Policy Optimization |
+| | TD3 | twin delayed deep deterministic policy gradient |
+| | DQN | deep Q-network |
+| | DRL | deep reinforcement learning |
+| Optimization | MILP | mixed-integer linear programming |
+| | TSP | traveling salesman problem |
+| | VRP | vehicle routing problem |
+| | ODE | ordinary differential equation |
+| Other | EMS | emergency medical services |
+
+**Usage Rules:**
+- **First use**: Use `\ac{ABBR}` which expands to "full form (ABBR)"
+- **Subsequent uses**: Use `\ac{ABBR}` which shows only "ABBR"
+- **Plural form**: Use `\acp{ABBR}` for "ABBRs" (e.g., `\acp{GNN}` → "GNNs")
+- **Force full form**: Use `\acf{ABBR}` to always show full expansion
+- **Force short form**: Use `\acs{ABBR}` to always show abbreviation only
+
+**Adding New Abbreviations:**
+```latex
+% In nomenclature.tex
+\acro{NEW}[NEW]{new abbreviation expansion}
+```
+
+**IMPORTANT**: Never use raw abbreviations in the paper text. Always use `\ac{}` commands for consistency.
+
+### Bibliography
+
+References are in `refs.bib` using BibTeX format. The paper uses `abbrvnat` bibliography style with `natbib` for author-year citations.
+
+**Citation Commands:**
+- `\cite{key}` - Numbered citation: [1]
+- `\citet{key}` - Textual: Author (year) or Author [1]
+- `\citep{key}` - Parenthetical: (Author, year) or [1]
+
+### Figures
+
+Figures are in `paper/figures/`. The Markov model diagrams are created using TikZ:
+- `markov_model.tex` / `.pdf` - SIV state transition diagram
+- `graph_markov.tex` / `.pdf` - Contact network schematic
+
+To regenerate PDFs from TikZ source, compile the `.tex` files with `pdflatex`.
 
 ## Troubleshooting
 
