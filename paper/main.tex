@@ -273,7 +273,7 @@ In the \ac{SIV} framework illustrated in Figure~\ref{fig:MarkovModel}, let \(s_i
 
 Model~\eqref{eq:StochasticModel} thus encodes the probability that node \(i\) changes compartment during \([t,t+\Delta t]\) given its current compartment and the infection status of its neighbors. Passing to the limit \(\Delta t \to 0\) yields a system of forward equations that forms the basis for both exact stochastic simulations and deterministic mean-field approximations in subsequent analyses.
 
-\section{Mean-Field Approximation of the Stochastic Model}
+\section{Mean-Field Approximation of the Stochastic Model} \label{sec:MeanField}
 
 We define the probabilities:
 \begin{itemize}
@@ -302,6 +302,265 @@ Here, \( \mathcal{N}_i \) denotes the neighborhood of node \( i \), and:
     \item \( \delta \): transition rate from infected to vaccinated,
     \item \( \omega \): transition rate from vaccinated to susceptible.
 \end{itemize}
+
+\subsection{Disease-Free Equilibrium} \label{subsec:DFE}
+
+The \ac{DFE} corresponds to a steady state in which no individual in the network is infected.  Setting $I_i(t) = 0$ for all $i \in \mathcal{V}$ in the mean-field system~\eqref{eq:meanfield}, we obtain the following characterization.
+
+\begin{proposition}[Disease-Free Equilibrium] \label{prop:DFE}
+The mean-field system~\eqref{eq:meanfield} admits a unique \ac{DFE} given by
+\begin{equation} \label{eq:DFE}
+\bigl(S_i^{\star},\, I_i^{\star},\, V_i^{\star}\bigr) = \left( \frac{\omega}{\nu_i + \omega},\; 0,\; \frac{\nu_i}{\nu_i + \omega} \right), \qquad i = 1, \ldots, n,
+\end{equation}
+where $\nu_i = \nu_i(L)$ denotes the vaccination rate of node $i$ under the facility configuration~$L$.
+\end{proposition}
+
+\begin{proof}
+Setting $I_i = 0$ in~\eqref{eq:meanfield}, the equations for $S_i$ and $V_i$ reduce to
+\[
+\frac{dS_i}{dt} = -\nu_i S_i + \omega V_i, \qquad \frac{dV_i}{dt} = \nu_i S_i - \omega V_i.
+\]
+At equilibrium, $\nu_i S_i = \omega V_i$.  Together with the conservation law $S_i + V_i = 1$ (since $I_i = 0$), this yields $S_i^{\star} = \omega / (\nu_i + \omega)$ and $V_i^{\star} = \nu_i / (\nu_i + \omega)$.
+\end{proof}
+
+\begin{remark} \label{rem:DFE_heterogeneous}
+The \ac{DFE}~\eqref{eq:DFE} is \emph{spatially heterogeneous}: the equilibrium fraction of vaccinated individuals at node~$i$ depends on $\nu_i(L)$, which in turn depends on the Euclidean distance from node~$i$ to the nearest open facility.  Nodes closer to open facilities attain a higher $V_i^{\star}$ and correspondingly lower $S_i^{\star}$, reflecting the spatial structure of vaccination access imposed by the facility configuration~$L$.
+\end{remark}
+
+\subsection{Local Stability and the Basic Reproduction Number} \label{subsec:stability}
+
+We analyze the local stability of the \ac{DFE} using the next-generation matrix approach~\citep{vandenDriessche2002,Diekmann2010}.  Let $A = (a_{ij}) \in \{0,1\}^{n \times n}$ denote the adjacency matrix of the contact network $\mathcal{G}(\mathcal{V}, \mathcal{E})$, where $a_{ij} = 1$ if $(i,j) \in \mathcal{E}$ and $a_{ij} = 0$ otherwise.  Since the network is undirected, $A$ is symmetric.
+
+At the \ac{DFE}, define the \emph{effective transmission coefficient} for node~$i$ as
+\begin{equation} \label{eq:lambda_i}
+\lambda_i \;=\; \beta_1 S_i^{\star} + \beta_2 V_i^{\star} \;=\; \frac{\beta_1 \omega + \beta_2 \nu_i}{\nu_i + \omega}.
+\end{equation}
+This quantity captures the weighted susceptibility of node~$i$ at the \ac{DFE}, combining contributions from the susceptible fraction (with infection rate $\beta_1$) and the vaccinated fraction (with breakthrough infection rate $\beta_2 < \beta_1$).  Let $\Lambda = \mathrm{diag}(\lambda_1, \ldots, \lambda_n)$ collect these coefficients.
+
+\begin{theorem}[Stability of the Disease-Free Equilibrium] \label{thm:DFE_stability}
+Assume the contact network $\mathcal{G}$ is connected and $\omega > 0$.  The \ac{DFE}~\eqref{eq:DFE} is locally asymptotically stable if $\mathcal{R}_0(L) < 1$ and unstable if $\mathcal{R}_0(L) > 1$, where
+\begin{equation} \label{eq:R0}
+\boxed{\;\mathcal{R}_0(L) \;=\; \frac{1}{\delta}\,\rho\!\left(\Lambda A\right)\;}
+\end{equation}
+and $\rho(\cdot)$ denotes the spectral radius.
+\end{theorem}
+
+\begin{proof}
+Eliminating $V_i = 1 - S_i - I_i$ from~\eqref{eq:meanfield} yields the reduced $2n$-dimensional system in the variables $(S_i, I_i)_{i=1}^{n}$:
+\begin{align}
+\frac{dS_i}{dt} &= -\beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j - \nu_i S_i + \omega(1 - S_i - I_i), \label{eq:reduced_S} \\
+\frac{dI_i}{dt} &= \bigl[\beta_1 S_i + \beta_2(1 - S_i - I_i)\bigr] \sum_{j \in \mathcal{N}_i} I_j - \delta I_i. \label{eq:reduced_I}
+\end{align}
+Writing $S_i = S_i^{\star} + s_i$ and $I_i = 0 + \iota_i$ and retaining first-order terms, the linearized system at the \ac{DFE} takes the block upper-triangular form
+\begin{equation} \label{eq:Jacobian}
+\frac{d}{dt} \begin{pmatrix} \bm{s} \\ \bm{\iota} \end{pmatrix}
+= \underbrace{\begin{pmatrix} -D & B \\ \bm{0} & \Lambda A - \delta I_n \end{pmatrix}}_{J}
+\begin{pmatrix} \bm{s} \\ \bm{\iota} \end{pmatrix},
+\end{equation}
+where $D = \mathrm{diag}(\nu_i + \omega)$ is a positive diagonal matrix, $I_n$ is the $n \times n$ identity matrix, and $B$ is a matrix whose precise form is not needed for the stability analysis.  The block upper-triangular structure arises because linearization of~\eqref{eq:reduced_I} around $I_i = 0$ yields
+\[
+\frac{d\iota_i}{dt} = \bigl(\beta_1 S_i^{\star} + \beta_2 V_i^{\star}\bigr) \sum_{j \in \mathcal{N}_i} \iota_j - \delta \iota_i = \lambda_i \sum_{j \in \mathcal{N}_i} \iota_j - \delta \iota_i,
+\]
+which depends only on $\{\iota_j\}_{j \in \mathcal{N}_i}$ and the \ac{DFE} values $(S_i^{\star}, V_i^{\star})$, but not on the susceptible perturbations $\{s_j\}$.
+
+The eigenvalues of $J$ are the union of the eigenvalues of $-D$ and those of $\Lambda A - \delta I_n$.  Since $-D$ has eigenvalues $-(\nu_i + \omega) < 0$ for all $i$, the stability of the \ac{DFE} is determined entirely by $\Lambda A - \delta I_n$.
+
+We now show that $\Lambda A$ has real eigenvalues.  Since $\Lambda$ has strictly positive diagonal entries, we may write the similarity transformation
+\begin{equation} \label{eq:similarity}
+\Lambda A = \Lambda^{1/2} \bigl(\Lambda^{1/2} A\, \Lambda^{1/2}\bigr) \Lambda^{-1/2},
+\end{equation}
+so $\Lambda A$ is similar to the symmetric matrix $\Lambda^{1/2} A\, \Lambda^{1/2}$ and therefore has real eigenvalues.  Moreover, since $\mathcal{G}$ is connected, $A$ is irreducible, and $\Lambda A$ is an irreducible nonnegative matrix.  By the Perron--Frobenius theorem, $\rho(\Lambda A)$ is a simple, positive eigenvalue associated with a strictly positive eigenvector.
+
+The eigenvalues of $\Lambda A - \delta I_n$ are $\{\mu_k - \delta\}_{k=1}^{n}$, where $\mu_1 \geq \mu_2 \geq \cdots \geq \mu_n$ are the eigenvalues of $\Lambda A$.  All eigenvalues of the Jacobian~\eqref{eq:Jacobian} have strictly negative real parts if and only if $\mu_1 = \rho(\Lambda A) < \delta$, which is equivalent to $\mathcal{R}_0(L) < 1$.  Conversely, if $\rho(\Lambda A) > \delta$, the largest eigenvalue $\mu_1 - \delta > 0$ renders the \ac{DFE} unstable.
+\end{proof}
+
+\begin{remark}[Dependence on Facility Configuration] \label{rem:R0_interpretation}
+The reproduction number $\mathcal{R}_0(L)$ depends on the facility configuration $L$ through the vaccination rates $\nu_i(L)$, which determine the diagonal matrix $\Lambda$.  This establishes a direct, quantitative link between the spatial arrangement of vaccination facilities and the threshold condition for disease persistence: the \ac{DFE} is stable---and the epidemic eventually dies out---if and only if the facility configuration drives $\mathcal{R}_0(L)$ below unity.
+\end{remark}
+
+The following result provides computable bounds on $\mathcal{R}_0(L)$ in terms of the network spectral radius $\rho(A)$ and the range of individual transmission coefficients.
+
+\begin{proposition}[Spectral Bounds] \label{prop:R0_bounds}
+Let $\lambda_{\min} = \min_{i} \lambda_i$ and $\lambda_{\max} = \max_{i} \lambda_i$.  Then
+\begin{equation} \label{eq:R0_bounds}
+\frac{\lambda_{\min}}{\delta}\,\rho(A) \;\leq\; \mathcal{R}_0(L) \;\leq\; \frac{\lambda_{\max}}{\delta}\,\rho(A).
+\end{equation}
+The bounds are tight when vaccination is spatially homogeneous ($\nu_i = \nu$ for all $i$), in which case equality holds throughout.
+\end{proposition}
+
+\begin{proof}
+Using the similarity~\eqref{eq:similarity},
+\[
+\rho(\Lambda A) = \rho\!\left(\Lambda^{1/2} A\, \Lambda^{1/2}\right) = \max_{\bm{x} \neq \bm{0}} \frac{\bm{x}^{\!\top} \Lambda^{1/2} A\, \Lambda^{1/2} \bm{x}}{\bm{x}^{\!\top} \bm{x}}.
+\]
+Substituting $\bm{y} = \Lambda^{1/2} \bm{x}$ gives
+\[
+\rho(\Lambda A) = \max_{\bm{y} \neq \bm{0}} \frac{\bm{y}^{\!\top} A\, \bm{y}}{\bm{y}^{\!\top} \Lambda^{-1} \bm{y}}.
+\]
+Since $\lambda_{\max}^{-1} \|\bm{y}\|^2 \leq \bm{y}^{\!\top} \Lambda^{-1} \bm{y} \leq \lambda_{\min}^{-1} \|\bm{y}\|^2$, we obtain
+\[
+\lambda_{\min}\, \rho(A) \;\leq\; \rho(\Lambda A) \;\leq\; \lambda_{\max}\, \rho(A).
+\]
+Dividing by $\delta$ yields~\eqref{eq:R0_bounds}.  When $\lambda_i = \lambda$ for all $i$, we have $\Lambda = \lambda I_n$ and $\rho(\Lambda A) = \lambda\, \rho(A)$ exactly.
+\end{proof}
+
+We next establish that improving vaccination access monotonically reduces the reproduction number.
+
+\begin{proposition}[Monotonicity in Facility Configuration] \label{prop:R0_monotone}
+The effective transmission coefficient $\lambda_i$ is strictly decreasing in $\nu_i$:
+\begin{equation} \label{eq:lambda_deriv}
+\frac{\partial \lambda_i}{\partial \nu_i} = \frac{(\beta_2 - \beta_1)\,\omega}{(\nu_i + \omega)^2} < 0,
+\end{equation}
+since $\beta_2 < \beta_1$ and $\omega > 0$.  Consequently, $\mathcal{R}_0(L)$ is monotonically nonincreasing with respect to the set of open facilities:
+\begin{equation} \label{eq:R0_monotone}
+L \subseteq L' \quad \Longrightarrow \quad \mathcal{R}_0(L') \leq \mathcal{R}_0(L).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The derivative~\eqref{eq:lambda_deriv} follows from direct differentiation of~\eqref{eq:lambda_i}.  For the monotonicity of $\mathcal{R}_0$, observe that $L \subseteq L'$ implies $d_i(L') \leq d_i(L)$ for all $i$ (the minimum distance to an open facility can only decrease when additional facilities are opened).  Since the vaccination rate $\nu_i(L) = v_{\min} + (v_{\max} - v_{\min})e^{-\alpha d_i(L)}$ is decreasing in $d_i$, it follows that $\nu_i(L') \geq \nu_i(L)$, and hence $\lambda_i(L') \leq \lambda_i(L)$ for all $i$.
+
+Since $A$ is nonnegative and $\Lambda(L') \leq \Lambda(L)$ componentwise (both being diagonal with nonnegative entries), the entrywise inequality $\Lambda(L') A \leq \Lambda(L) A$ holds.  By the monotonicity property of the Perron--Frobenius eigenvalue for nonnegative matrices, $\rho(\Lambda(L') A) \leq \rho(\Lambda(L) A)$, which gives~\eqref{eq:R0_monotone}.
+\end{proof}
+
+\begin{remark}[Policy Interpretation] \label{rem:policy}
+Proposition~\ref{prop:R0_monotone} provides a theoretical justification for opening vaccination facilities: enlarging the set of open facilities $L$ monotonically reduces $\mathcal{R}_0(L)$.  However, each facility incurs operational costs~$C_O$ per time step and transition costs~$f^+$ (opening) and~$f^-$ (closing).  The reproduction number $\mathcal{R}_0(L)$ quantifies the epidemiological benefit of a given configuration, while the cost model captures the associated economic burden.  The \ac{RL} agent seeks facility configurations that balance these competing objectives, achieving favorable epidemic outcomes at minimum total cost.
+\end{remark}
+
+\subsection{Special Cases} \label{subsec:special_cases}
+
+The general expression~\eqref{eq:R0} simplifies under specific parameter regimes, yielding closed-form formulas that connect to classical results in mathematical epidemiology.
+
+\begin{corollary}[No Vaccination] \label{cor:no_vaccination}
+If no facilities are open ($L = \emptyset$), then $\nu_i = v_{\min}$ for all $i$.  In the limit $v_{\min} \to 0$:
+\[
+\lambda_i \to \beta_1, \qquad \mathcal{R}_0(\emptyset) = \frac{\beta_1}{\delta}\,\rho(A).
+\]
+This recovers the classical network \acs{SIV}/SIS reproduction number, where the spectral radius $\rho(A)$ plays the role of the effective number of contacts.
+\end{corollary}
+
+\begin{corollary}[Homogeneous Vaccination] \label{cor:homogeneous_vacc}
+If all nodes share the same vaccination rate $\nu_i = \nu$ (e.g., on a network with spatially uniform facility access), then $\Lambda = \lambda I_n$ with
+\[
+\lambda = \frac{\beta_1 \omega + \beta_2 \nu}{\nu + \omega},
+\]
+and the reproduction number simplifies to
+\begin{equation} \label{eq:R0_homogeneous}
+\mathcal{R}_0 = \frac{(\beta_1 \omega + \beta_2 \nu)\,\rho(A)}{\delta(\nu + \omega)}.
+\end{equation}
+\end{corollary}
+
+\begin{corollary}[No Waning Immunity] \label{cor:no_waning}
+If immunity is permanent ($\omega = 0$), the \ac{DFE} satisfies $S_i^{\star} = 0$ and $V_i^{\star} = 1$ for all $i$ (the entire population is eventually vaccinated).  The reproduction number becomes
+\[
+\mathcal{R}_0 = \frac{\beta_2}{\delta}\,\rho(A),
+\]
+which is independent of the facility configuration $L$.  In this regime, epidemic persistence is governed solely by the balance between breakthrough infection rate~$\beta_2$ and recovery rate~$\delta$, and the spatial placement of facilities has no effect on the long-run disease threshold.
+\end{corollary}
+
+\begin{corollary}[Homogeneous Regular Network] \label{cor:regular_graph}
+On a $k$-regular graph (every node has degree $k$), $\rho(A) = k$.  Combined with homogeneous vaccination ($\nu_i = \nu$), the reproduction number becomes
+\begin{equation} \label{eq:R0_regular}
+\mathcal{R}_0 = \frac{k\,(\beta_1 \omega + \beta_2 \nu)}{\delta\,(\nu + \omega)},
+\end{equation}
+and the \ac{DFE} is stable if and only if
+\[
+k < \frac{\delta\,(\nu + \omega)}{\beta_1 \omega + \beta_2 \nu},
+\]
+providing an explicit upper bound on the network connectivity that permits disease elimination for a given vaccination rate.
+\end{corollary}
+
+\subsection{Endemic Equilibrium} \label{subsec:endemic}
+
+When $\mathcal{R}_0(L) > 1$, the \ac{DFE} is unstable and the disease persists in the network.  We now characterize the resulting endemic steady state.
+
+\begin{theorem}[Existence of Endemic Equilibrium] \label{thm:endemic}
+Assume the contact network $\mathcal{G}$ is connected and $\omega > 0$.
+\begin{enumerate}[(i)]
+    \item If $\mathcal{R}_0(L) \leq 1$, then the \ac{DFE}~\eqref{eq:DFE} is the only nonnegative equilibrium of~\eqref{eq:meanfield}.
+    \item If $\mathcal{R}_0(L) > 1$, there exists an endemic equilibrium $(S_i^{\star}, I_i^{\star}, V_i^{\star})$ with $I_i^{\star} > 0$ for all $i \in \mathcal{V}$.  The bifurcation at $\mathcal{R}_0(L) = 1$ is forward (transcritical): the endemic branch emerges continuously as $\mathcal{R}_0(L)$ crosses unity from below.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Part~(i) follows from the fact that at any equilibrium with $\bm{I}^{\star} \neq \bm{0}$, the vector $\bm{I}^{\star}$ satisfies the fixed-point equation~\eqref{eq:endemic_fixedpoint} below, whose right-hand side is bounded above by $(\lambda_{\max}/\delta)\,(A\bm{I}^{\star})_i$ for small $\|\bm{I}^{\star}\|$.  When $\mathcal{R}_0(L) < 1$, this contraction prevents any nontrivial fixed point.
+
+Part~(ii) follows from a bifurcation analysis at $\mathcal{R}_0(L) = 1$.  At this critical value, the Jacobian $\Lambda A - \delta I_n$ has a simple zero eigenvalue with a positive eigenvector (by Perron--Frobenius).  The forward nature of the bifurcation is verified for the homogeneous case in Proposition~\ref{prop:endemic_homogeneous}.  The positivity $I_i^{\star} > 0$ for all $i$ follows from the irreducibility of $A$: at any equilibrium with $\bm{I}^{\star} \geq \bm{0}$ and $\bm{I}^{\star} \neq \bm{0}$, the equation $\delta I_i = (\beta_1 S_i + \beta_2 V_i) \sum_{j \in \mathcal{N}_i} I_j$ and the connectivity of $\mathcal{G}$ imply $I_i > 0$ for every node.
+\end{proof}
+
+The endemic equilibrium is characterized by the following system of self-consistency equations, obtained by setting all time derivatives in~\eqref{eq:meanfield} to zero.
+
+\begin{proposition}[Characterization of Endemic Equilibrium] \label{prop:endemic_characterization}
+At any endemic equilibrium of~\eqref{eq:meanfield}, define the \emph{infection pressure} at node~$i$ as $\theta_i = \sum_{j \in \mathcal{N}_i} I_j^{\star} = (A\bm{I}^{\star})_i$.  The equilibrium values satisfy
+\begin{equation} \label{eq:endemic_SV}
+S_i^{\star} = \frac{\omega\,(1 - I_i^{\star})}{\beta_1 \theta_i + \nu_i + \omega}, \qquad V_i^{\star} = 1 - S_i^{\star} - I_i^{\star},
+\end{equation}
+and the infected probabilities are determined by the fixed-point equation
+\begin{equation} \label{eq:endemic_fixedpoint}
+I_i^{\star} = \frac{\theta_i\,\bigl(\beta_1 \omega + \beta_2 \nu_i + \beta_1 \beta_2\, \theta_i\bigr)}{\delta\,(\beta_1 \theta_i + \nu_i + \omega) + \theta_i\,\bigl(\beta_1 \omega + \beta_2 \nu_i + \beta_1 \beta_2\, \theta_i\bigr)}, \qquad i = 1, \ldots, n.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Setting $dI_i/dt = 0$ in~\eqref{eq:meanfield} gives
+\begin{equation} \label{eq:endemic_I_balance}
+\delta I_i = (\beta_1 S_i + \beta_2 V_i)\,\theta_i.
+\end{equation}
+Setting $dS_i/dt = 0$:
+\begin{equation} \label{eq:endemic_S_balance}
+\omega V_i = S_i\,(\beta_1 \theta_i + \nu_i).
+\end{equation}
+Combining~\eqref{eq:endemic_S_balance} with the conservation law $S_i + I_i + V_i = 1$ yields $S_i^{\star}$ as in~\eqref{eq:endemic_SV}.  Substituting $V_i = 1 - S_i - I_i$ and the expression for $S_i$ into~\eqref{eq:endemic_I_balance}, and solving for $I_i$:
+\begin{align*}
+\delta I_i &= \left[(\beta_1 - \beta_2)\,\frac{\omega(1 - I_i)}{\beta_1 \theta_i + \nu_i + \omega} + \beta_2(1 - I_i)\right] \theta_i \\[4pt]
+&= \frac{(1 - I_i)\,\theta_i\,\bigl(\beta_1 \omega + \beta_2 \nu_i + \beta_1 \beta_2\, \theta_i\bigr)}{\beta_1 \theta_i + \nu_i + \omega}.
+\end{align*}
+Solving for $I_i$ yields~\eqref{eq:endemic_fixedpoint}.
+\end{proof}
+
+\begin{remark} \label{rem:endemic_fixedpoint}
+Equation~\eqref{eq:endemic_fixedpoint} defines a nonlinear fixed-point map $\bm{I}^{\star} = \Phi(\bm{I}^{\star})$, where $\Phi_i$ depends on $\bm{I}^{\star}$ through the infection pressure $\theta_i = (A\bm{I}^{\star})_i$.  For each $i$, the right-hand side of~\eqref{eq:endemic_fixedpoint} is zero when $\theta_i = 0$ (recovering the \ac{DFE}), increases monotonically in $\theta_i$, and saturates strictly below one as $\theta_i \to \infty$.  This structure implies that the endemic infection level at each node is bounded and determined self-consistently by the infection levels at neighboring nodes through the network topology.
+\end{remark}
+
+For the homogeneous case, the endemic equilibrium admits an explicit characterization.
+
+\begin{proposition}[Homogeneous Endemic Equilibrium] \label{prop:endemic_homogeneous}
+On a $k$-regular graph with uniform vaccination rate $\nu_i = \nu$, the endemic equilibrium (when $\mathcal{R}_0 > 1$) is spatially uniform: $S_i^{\star} = S^{\star}$, $I_i^{\star} = I^{\star}$, $V_i^{\star} = V^{\star}$ for all $i$.  The endemic infection probability $I^{\star}$ is the unique positive root of the quadratic
+\begin{equation} \label{eq:endemic_quadratic}
+\beta_1 \beta_2\, k^2\, I^2 + k\,\bigl[\beta_1(\delta + \omega - \beta_2 k) + \beta_2 \nu\bigr]\, I + \delta\,(\nu + \omega)\,\bigl(1 - \mathcal{R}_0\bigr) = 0,
+\end{equation}
+and the corresponding susceptible and vaccinated fractions are
+\begin{equation} \label{eq:endemic_SV_hom}
+S^{\star} = \frac{\omega\,(1 - I^{\star})}{\beta_1 k\, I^{\star} + \nu + \omega}, \qquad V^{\star} = 1 - S^{\star} - I^{\star}.
+\end{equation}
+Moreover, the bifurcation at $\mathcal{R}_0 = 1$ is forward.
+\end{proposition}
+
+\begin{proof}
+By the symmetry of the $k$-regular graph, the endemic equilibrium is spatially uniform with $\theta_i = kI$ for all $i$.  Setting $dI/dt = 0$ with $I > 0$:
+\begin{equation} \label{eq:hom_I_balance}
+\delta = k\,(\beta_1 S + \beta_2 V).
+\end{equation}
+From $dS/dt = 0$ and the conservation law $S + I + V = 1$:
+\[
+S = \frac{\omega\,(1 - I)}{\beta_1 kI + \nu + \omega}, \qquad V = (1-I)\,\frac{\nu + \beta_1 kI}{\beta_1 kI + \nu + \omega}.
+\]
+Substituting into~\eqref{eq:hom_I_balance} and cross-multiplying:
+\[
+\delta\,(\beta_1 kI + \nu + \omega) = k\,(1-I)\,\bigl[\beta_1 \omega + \beta_2 \nu + \beta_1 \beta_2\, kI\bigr].
+\]
+Expanding and collecting powers of $I$ yields the quadratic~\eqref{eq:endemic_quadratic}.  The constant term equals $\delta(\nu + \omega)(1 - \mathcal{R}_0)$, which is negative when $\mathcal{R}_0 > 1$, and the leading coefficient $\beta_1 \beta_2 k^2 > 0$.  By Descartes' rule of signs, there is exactly one positive root.
+
+To verify the forward bifurcation, set $\mathcal{R}_0 = 1$ (equivalently, $\delta = k(\beta_1 \omega + \beta_2 \nu)/(\nu + \omega)$).  Then the constant term vanishes and the quadratic factors as $I\bigl[\beta_1 \beta_2 k^2 I + b\bigr] = 0$, where the middle coefficient is
+\[
+b = k\,\bigl[\beta_1(\delta + \omega - \beta_2 k) + \beta_2 \nu\bigr].
+\]
+Substituting the critical value of $\delta$ and simplifying:
+\[
+b = \frac{k\,\bigl[\beta_1 \omega\, k(\beta_1 - \beta_2) + (\beta_1 \omega + \beta_2 \nu)(\beta_1 + \beta_2)\bigr]}{\nu + \omega},
+\]
+which is strictly positive since $\beta_1 > \beta_2 > 0$.  Thus the second root $I = -b/(\beta_1 \beta_2 k^2) < 0$ is negative, confirming that the endemic branch with $I^{\star} > 0$ exists only for $\mathcal{R}_0 > 1$ (forward bifurcation).
+\end{proof}
 
 
 \bibliography{refs}
