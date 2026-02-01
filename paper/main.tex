@@ -285,13 +285,11 @@ We define the probabilities:
 Assuming a mean-field approximation (independence between node states), we derive the following system of \acp{ODE} for each node \( i \):
 
 \begin{equation} \label{eq:meanfield}
-\boxed{
-\begin{aligned}
-\frac{dS_i}{dt} &= - \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j - \nu_i(d_i) S_i + \omega V_i \\
-\frac{dI_i}{dt} &= \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j + \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \delta I_i \\
-\frac{dV_i}{dt} &= \nu_i(d_i) S_i + \delta I_i - \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \omega V_i
-\end{aligned}
-}
+	\begin{aligned}
+	\frac{dS_i}{dt} &= - \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j - \nu_i(d_i) S_i + \omega V_i \\
+	\frac{dI_i}{dt} &= \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j + \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \delta I_i \\
+	\frac{dV_i}{dt} &= \nu_i(d_i) S_i + \delta I_i - \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \omega V_i
+	\end{aligned}
 \end{equation}
 
 Here, \( \mathcal{N}_i \) denotes the neighborhood of node \( i \), and:
@@ -340,7 +338,7 @@ This quantity captures the weighted susceptibility of node~$i$ at the \ac{DFE}, 
 \begin{theorem}[Stability of the Disease-Free Equilibrium] \label{thm:DFE_stability}
 Assume the contact network $\mathcal{G}$ is connected and $\omega > 0$.  The \ac{DFE}~\eqref{eq:DFE} is locally asymptotically stable if $\mathcal{R}_0(L) < 1$ and unstable if $\mathcal{R}_0(L) > 1$, where
 \begin{equation} \label{eq:R0}
-\boxed{\;\mathcal{R}_0(L) \;=\; \frac{1}{\delta}\,\rho\!\left(\Lambda A\right)\;}
+\;\mathcal{R}_0(L) \;=\; \frac{1}{\delta}\,\rho\!\left(\Lambda A\right)\;
 \end{equation}
 and $\rho(\cdot)$ denotes the spectral radius.
 \end{theorem}
@@ -482,10 +480,49 @@ Assume the contact network $\mathcal{G}$ is connected and $\omega > 0$.
 \end{enumerate}
 \end{theorem}
 
-\begin{proof}[Proof sketch]
-Part~(i) follows from the fact that at any equilibrium with $\bm{I}^{\star} \neq \bm{0}$, the vector $\bm{I}^{\star}$ satisfies the fixed-point equation~\eqref{eq:endemic_fixedpoint} below, whose right-hand side is bounded above by $(\lambda_{\max}/\delta)\,(A\bm{I}^{\star})_i$ for small $\|\bm{I}^{\star}\|$.  When $\mathcal{R}_0(L) < 1$, this contraction prevents any nontrivial fixed point.
+\begin{proof}
+We prove each part in turn, making use of the fixed-point characterization established in Proposition~\ref{prop:endemic_characterization} below.
 
-Part~(ii) follows from a bifurcation analysis at $\mathcal{R}_0(L) = 1$.  At this critical value, the Jacobian $\Lambda A - \delta I_n$ has a simple zero eigenvalue with a positive eigenvector (by Perron--Frobenius).  The forward nature of the bifurcation is verified for the homogeneous case in Proposition~\ref{prop:endemic_homogeneous}.  The positivity $I_i^{\star} > 0$ for all $i$ follows from the irreducibility of $A$: at any equilibrium with $\bm{I}^{\star} \geq \bm{0}$ and $\bm{I}^{\star} \neq \bm{0}$, the equation $\delta I_i = (\beta_1 S_i + \beta_2 V_i) \sum_{j \in \mathcal{N}_i} I_j$ and the connectivity of $\mathcal{G}$ imply $I_i > 0$ for every node.
+\medskip
+\noindent\textit{Part~(i): Nonexistence when $\mathcal{R}_0(L) \leq 1$.}\enspace
+Suppose, for contradiction, that an endemic equilibrium $\bm{I}^{\star} \geq \bm{0}$ with $\bm{I}^{\star} \neq \bm{0}$ exists.  We first show that $I_i^{\star} > 0$ for every node~$i$.  At equilibrium, equation~\eqref{eq:endemic_I_balance} gives $\delta I_i = (\beta_1 S_i^{\star} + \beta_2 V_i^{\star})\,\theta_i$, where $\theta_i = (A\bm{I}^{\star})_i$.  Since $\mathcal{G}$ is connected, $A$ is irreducible.  If $I_j^{\star} > 0$ for some neighbor $j \in \mathcal{N}_i$, then $\theta_i > 0$ and $\beta_1 S_i^{\star} + \beta_2 V_i^{\star} > 0$ (as $S_i^{\star}, V_i^{\star} \geq 0$ with $S_i^{\star} + V_i^{\star} = 1 - I_i^{\star} > 0$), so $I_i^{\star} > 0$.  By connectivity, $I_i^{\star} > 0$ for all~$i$.
+
+Now, from equation~\eqref{eq:endemic_S_balance} and the conservation law $S_i + I_i + V_i = 1$, the equilibrium susceptible fraction satisfies $S_i^{\star} = \omega(1 - I_i^{\star})/(\beta_1 \theta_i + \nu_i + \omega)$.  Since $I_i^{\star} > 0$ and $\theta_i > 0$, we have the strict inequalities
+\[
+S_i^{\star} = \frac{\omega(1 - I_i^{\star})}{\beta_1 \theta_i + \nu_i + \omega} < \frac{\omega}{\nu_i + \omega} = S_i^{\text{DFE}}.
+\]
+Using $V_i^{\star} = 1 - S_i^{\star} - I_i^{\star}$, the effective transmission coefficient at the endemic equilibrium satisfies
+\[
+\beta_1 S_i^{\star} + \beta_2 V_i^{\star} = (\beta_1 - \beta_2)\,S_i^{\star} + \beta_2(1 - I_i^{\star}) < (\beta_1 - \beta_2)\,\frac{\omega}{\nu_i + \omega} + \beta_2 = \frac{\beta_1 \omega + \beta_2 \nu_i}{\nu_i + \omega} = \lambda_i,
+\]
+where the strict inequality uses $S_i^{\star} < \omega/(\nu_i + \omega)$ (since $\beta_1 > \beta_2$) and $1 - I_i^{\star} < 1$.  Substituting into the equilibrium condition $\delta I_i^{\star} = (\beta_1 S_i^{\star} + \beta_2 V_i^{\star})\,\theta_i$ yields the strict componentwise inequality
+\begin{equation} \label{eq:endemic_CW}
+\delta\, I_i^{\star} < \lambda_i\,(A\bm{I}^{\star})_i = (\Lambda A\, \bm{I}^{\star})_i, \qquad \text{for all } i = 1, \ldots, n.
+\end{equation}
+Since $\bm{I}^{\star} > \bm{0}$ and $\Lambda A$ is an irreducible nonnegative matrix, the Collatz--Wielandt characterization of the Perron--Frobenius eigenvalue gives
+\[
+\rho(\Lambda A) \;\geq\; \min_{i:\, I_i^{\star} > 0} \frac{(\Lambda A\, \bm{I}^{\star})_i}{I_i^{\star}} \;>\; \delta,
+\]
+which implies $\mathcal{R}_0(L) = \rho(\Lambda A)/\delta > 1$.  This contradicts $\mathcal{R}_0(L) \leq 1$, so no endemic equilibrium can exist.
+
+\medskip
+\noindent\textit{Part~(ii): Existence when $\mathcal{R}_0(L) > 1$.}\enspace
+We construct the endemic equilibrium as the limit of a monotone iteration on the fixed-point map defined by~\eqref{eq:endemic_fixedpoint}.  For $\bm{I} \in [0,1]^n$, define the map $\Phi \colon [0,1]^n \to [0,1)^n$ componentwise by
+\[
+\Phi_i(\bm{I}) = \frac{\theta_i\,(\beta_1 \omega + \beta_2 \nu_i + \beta_1 \beta_2\, \theta_i)}{\delta\,(\beta_1 \theta_i + \nu_i + \omega) + \theta_i\,(\beta_1 \omega + \beta_2 \nu_i + \beta_1 \beta_2\, \theta_i)}, \qquad \theta_i = (A\bm{I})_i.
+\]
+
+We verify three properties of~$\Phi$:
+
+\emph{(a)~$\Phi$ maps $[0,1]^n$ into itself.}  Each $\Phi_i$ is a ratio of nonneg\-ative quantities with $\Phi_i \in [0,1)$, since the denominator strictly exceeds the numerator by $\delta(\beta_1\theta_i + \nu_i + \omega) > 0$.
+
+\emph{(b)~$\Phi$ is order-preserving (monotone).}  Writing $1/\Phi_i = 1 + \delta(\beta_1 \theta_i + \nu_i + \omega)/[\theta_i(\beta_1 \omega + \beta_2 \nu_i + \beta_1 \beta_2 \theta_i)]$ for $\theta_i > 0$, the second term equals $\delta[\beta_1/(\beta_1\omega + \beta_2\nu_i + \beta_1\beta_2\theta_i) + (\nu_i + \omega)/(\theta_i(\beta_1\omega + \beta_2\nu_i + \beta_1\beta_2\theta_i))]$, which is strictly decreasing in $\theta_i$.  Hence $\Phi_i$ is strictly increasing in~$\theta_i$.  Since $A$ has nonneg\-ative entries, $\theta_i = (A\bm{I})_i$ is nondecreasing in each component of~$\bm{I}$, so $\bm{I} \leq \bm{I}'$ componentwise implies $\Phi(\bm{I}) \leq \Phi(\bm{I}')$ componentwise.
+
+\emph{(c)~$\Phi$ dominates the identity near the origin when $\mathcal{R}_0(L) > 1$.}  For small $\|\bm{I}\|$, a first-order expansion gives $\Phi_i(\bm{I}) \approx (\lambda_i/\delta)\,(A\bm{I})_i$, so the linearization of $\Phi$ at $\bm{0}$ is $(1/\delta)\,\Lambda A$.  Let $\bm{v} > \bm{0}$ be the Perron eigenvector of $\Lambda A$ (which exists by Perron--Frobenius, since $\Lambda A$ is irreducible and nonnegative), normalized so that $\|\bm{v}\|_{\infty} < 1$.  Then $\Phi(\varepsilon \bm{v}) = \varepsilon \,\mathcal{R}_0(L)\,\bm{v} + O(\varepsilon^2)$.  Since $\mathcal{R}_0(L) > 1$, there exists $\varepsilon_0 > 0$ such that $\Phi(\varepsilon_0 \bm{v}) \geq \varepsilon_0 \bm{v}$ componentwise.
+
+Now define the monotone iteration $\bm{I}^{(0)} = \varepsilon_0 \bm{v}$ and $\bm{I}^{(k+1)} = \Phi(\bm{I}^{(k)})$ for $k \geq 0$.  By~(c), $\bm{I}^{(1)} = \Phi(\bm{I}^{(0)}) \geq \bm{I}^{(0)}$.  By~(b) and induction, $\{\bm{I}^{(k)}\}$ is componentwise nondecreasing.  By~(a), it is bounded above by~$\bm{1}$.  Therefore $\bm{I}^{(k)} \to \bm{I}^{\star}$ as $k \to \infty$, and by continuity of $\Phi$, the limit satisfies $\bm{I}^{\star} = \Phi(\bm{I}^{\star})$.  Since $\bm{I}^{\star} \geq \varepsilon_0 \bm{v} > \bm{0}$, this is a nontrivial endemic equilibrium with $I_i^{\star} > 0$ for all~$i$.  The corresponding $(S_i^{\star}, V_i^{\star})$ are recovered from~\eqref{eq:endemic_SV}.
+
+\emph{Forward bifurcation.}  As $\mathcal{R}_0(L) \downarrow 1$, the threshold $\varepsilon_0$ in~(c) can be taken arbitrarily small, and Part~(i) shows that no nontrivial equilibrium exists at $\mathcal{R}_0(L) = 1$.  Hence $\|\bm{I}^{\star}\| \to 0$ continuously as $\mathcal{R}_0(L) \to 1^+$, confirming a forward (transcritical) bifurcation.  For the homogeneous case, the explicit quadratic characterization in Proposition~\ref{prop:endemic_homogeneous} provides an independent verification.
 \end{proof}
 
 The endemic equilibrium is characterized by the following system of self-consistency equations, obtained by setting all time derivatives in~\eqref{eq:meanfield} to zero.

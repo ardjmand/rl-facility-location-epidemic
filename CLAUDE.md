@@ -83,7 +83,26 @@ tensorboard --logdir ./outputs/logs
 
 **Citations**: `refs.bib` with `natbib` (`\citet{}` for textual, `\citep{}` for parenthetical).
 
-**Paper status**: Sections through Analytical Model Development are complete. RL Methodology, Experiments, and Conclusions are not yet written.
+**Paper status**:
+
+| Section | Label | Status |
+|---------|-------|--------|
+| Introduction | `sec:intro` | Complete |
+| Literature Review | `sec:LitRev` | Complete |
+| Problem Statement | `sec:ProbStat` | Complete |
+| Analytical Model Development | `sec:AnalyticalModelDev` | Complete |
+| Mean-Field Approximation | `sec:MeanField` | Complete |
+| -- Disease-Free Equilibrium | `subsec:DFE` | Complete |
+| -- Local Stability & R_0 | `subsec:stability` | Complete |
+| -- Special Cases | `subsec:special_cases` | Complete |
+| -- Endemic Equilibrium | `subsec:endemic` | Complete |
+| RL Methodology | `sec:RLMethod` | Not yet written |
+| Experiments | `sec:Experiments` | Not yet written |
+| Conclusions | `sec:Conclusions` | Not yet written |
+
+**Key labeled equations**: `eq:StochasticModel` (transition probabilities), `eq:meanfield` (mean-field ODEs), `eq:DFE` (disease-free equilibrium), `eq:R0` (reproduction number), `eq:R0_bounds` (spectral bounds), `eq:endemic_fixedpoint` (endemic self-consistency), `eq:endemic_quadratic` (homogeneous endemic quadratic).
+
+**Key labeled results**: `prop:DFE`, `thm:DFE_stability`, `prop:R0_bounds`, `prop:R0_monotone`, `cor:no_vaccination`, `cor:homogeneous_vacc`, `cor:no_waning`, `cor:regular_graph`, `thm:endemic`, `prop:endemic_characterization`, `prop:endemic_homogeneous`.
 
 ## Key Architecture Notes
 
