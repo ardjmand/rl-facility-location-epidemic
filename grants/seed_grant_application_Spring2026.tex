@@ -1,0 +1,218 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{bbding}
+\usepackage{pifont}
+\usepackage{wasysym}
+\usepackage{pdfpages}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{url}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\usepackage{bm}
+\usepackage{array,makecell}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\newtheorem{remark}{Remark}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+\begin{center}
+    \Large \textbf{Ohio University} \\
+    \large \textbf{College of Business} \\
+    \bigskip
+    \textbf{RESEARCH SEED GRANT APPLICATION} \\
+    \textbf{2025-2026}
+\end{center}
+
+\section{Name of Applicant(s): \hfill Date \underline{2/1/2026}}
+\begin{tabular}{|l|l|l|l|l|}
+    \hline
+    Name & Rank & Department & Email & Phone \\
+    \hline
+    Ehsan Ardjmand & Associate Professor & AIS & ardjmand@ohio.edu & 740-566-0122 \\
+    \hline
+\end{tabular}
+
+\section{Title of Proposed Research:}
+Dynamic Facility Location via Reinforcement Learning for Epidemic Suppression in Contact Networks
+
+\section{Research Objective/s:}
+
+During an epidemic, one of the most consequential decisions facing public health authorities is \emph{where} and \emph{when} to operate vaccination facilities.  Opening a facility near a disease hotspot can dramatically slow transmission, but every open facility incurs operational costs, and the optimal locations shift as the outbreak evolves.  Most existing optimization approaches determine facility locations once, before the epidemic begins, and keep them fixed throughout~\cite{li2022deploying}.  In practice, decision-makers must repeatedly reassess which facilities to keep open, which to close, and which new ones to activate---all while balancing limited budgets against the human cost of infection.
+
+This research develops a computational framework that \textbf{dynamically decides which vaccination facilities to open or close over the course of an epidemic}, learning from the evolving pattern of infections across a population's social contact network.  The framework rests on three pillars:
+
+\begin{enumerate}
+    \item \textbf{A network-based epidemic model} that captures how a disease spreads through person-to-person contacts and how vaccination---whose accessibility depends on the proximity of open facilities---slows that spread (Figure~\ref{fig:markov}).
+    \item \textbf{A mathematical analysis} that quantifies the relationship between facility placement and epidemic outcomes, providing a rigorous theoretical foundation.
+    \item \textbf{An artificial intelligence (AI) agent} trained via reinforcement learning (RL) that observes the state of the epidemic in real time and learns cost-effective facility management policies (Figure~\ref{fig:network}).
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{../paper/figures/markov_model.pdf}
+    \caption{The Susceptible--Infected--Vaccinated (SIV) compartmental model.  Each individual in the population can be in one of three health states.  Susceptible individuals ($S$) become infected ($I$) through contact with infected neighbors.  Both susceptible and infected individuals can move to the vaccinated state ($V$) through vaccination or recovery, respectively.  Vaccinated individuals may experience waning immunity and return to the susceptible state, or may become infected at a reduced rate (breakthrough infection).  Crucially, the vaccination rate $\nu_i(L)$ depends on how close the individual is to the nearest open facility.}
+    \label{fig:markov}
+\end{figure}
+
+\textbf{The epidemic model.}  The population is represented as a network (graph) where nodes are individuals and edges represent contacts through which the disease can spread~\cite{Keeling2005, pastor2015epidemic}.  Each individual occupies one of three health states---Susceptible, Infected, or Vaccinated---as shown in Figure~\ref{fig:markov}.  The key innovation is that the rate at which a person gets vaccinated depends on their distance to the nearest \emph{open} vaccination facility: people closer to an open facility are vaccinated faster.  This creates a direct link between the facility location decisions and the course of the epidemic.
+
+\textbf{Mathematical analysis.}  Using a well-established mean-field approximation technique~\cite{vandenDriessche2002}, we derive a fundamental quantity called the \emph{basic reproduction number}, $\mathcal{R}_0$, which measures the expected number of new infections caused by a single infected individual.  When $\mathcal{R}_0 < 1$, the disease dies out; when $\mathcal{R}_0 > 1$, it persists.  We show that $\mathcal{R}_0$ depends directly on which facilities are open, providing a precise, quantitative link between facility configuration and epidemic outcome.  We also prove that opening additional facilities can never increase $\mathcal{R}_0$---that is, more vaccination access always helps from an epidemiological standpoint---though the associated costs create a nontrivial trade-off.
+
+\textbf{The AI-based decision agent.}  The facility management problem is formulated as a sequential decision-making task.  At regular intervals, the AI agent observes the current state of the epidemic across the network and decides which facilities to open or close.  The agent seeks to minimize a total cost that includes four components: (i)~the societal burden of infections, (ii)~vaccination costs, (iii)~the operational cost of keeping facilities open, and (iv)~transition costs incurred when opening or closing a facility.  The agent is trained using Proximal Policy Optimization (PPO)~\cite{schulman2017proximal}, a state-of-the-art RL algorithm, combined with graph neural networks (GNNs)~\cite{kipf2016semi} that allow the agent to process the network structure and make informed, spatially aware decisions.  This combination of RL and GNNs has shown strong results in related network optimization problems~\cite{Miao2024, hao2022reinforcement}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{../outputs/figures/network_20250701235648414351.pdf}
+    \caption{A sample problem instance generated by our simulation framework.  Circles represent individuals in the contact network, colored by their health state: blue (susceptible), red (infected), and green (vaccinated).  Triangles represent vaccination facilities, colored orange if open and gray if closed.  Solid black lines are social contacts between individuals; dashed gray lines connect individuals to nearby facilities.  The RL agent's task is to decide which facilities (triangles) to open or close over time to suppress the epidemic at minimum total cost.}
+    \label{fig:network}
+\end{figure}
+
+This project builds on the our prior work on RL-based resource allocation in contact networks~\cite{ardjmand2024guided} and contributes to a growing body of research applying AI methods to epidemic control~\cite{bushaj2023simulation, mai2023planning}.
+
+\section{Which class of research does this proposal represent?}
+\begin{itemize}
+    \item[ ] \textbf{Basic Scholarship:} The creation of new knowledge. This includes: Peer-reviewed articles aimed at developing and testing basic theories and concepts in scholarly journals, scholarly books and research monographs.
+    \item[ ] \checkmark \textbf{Applied Scholarship:} The application, transfer, and interpretation of knowledge to improve management practices. This includes: Peer-reviewed articles aimed at improving business practices published in academic, professional, trade or in-house journals, professional books.
+    \item[ ] \textbf{Instructional Development:} The enhancement of the educational value of instructional efforts of the institution or discipline. This includes: Peer-reviewed articles aimed at enhancing educational value of instructional efforts in scholarly, professional, or pedagogical journals, published cases, published software, textbooks, pedagogical books, chapters in textbooks.
+\end{itemize}
+
+\section{Research Compliance Approval}
+To ensure that the University is in compliance with all federal regulations, the following checklist is provided.
+
+\smallskip
+\noindent\textit{Note: A proposal can be approved prior to approval from IRB or IACUC (put ``pending'' or ``to be submitted'' instead of approval number). Funding will be withheld until notification of approval or exemption.}
+
+\bigskip
+\begin{tabular}{|c|c|p{6.5cm}|c|}
+    \hline
+    Yes & No & Office of Research Compliance & Policy \# \\
+    \hline
+    & X & Human Subjects Research \newline IRB Approval \#: N/A \newline Expiration Date: N/A & 19.052 \\
+    \hline
+    & X & Animal Specie Research \newline IACUC Approval \#: N/A \newline Expiration Date: N/A & 19.049 \\
+    \hline
+\end{tabular}
+
+\medskip
+\noindent This research uses only computationally simulated data (synthetic contact networks and epidemic dynamics). No human subjects or animal subjects are involved.
+
+\section{How do you propose to conduct the research?}
+The research is organized into three phases, each building on the previous one.
+
+\textbf{Phase 1: Epidemic simulation and mathematical analysis.}
+We model the spread of disease through a population's contact network using the SIV (Susceptible--Infected--Vaccinated) framework illustrated in Figure~\ref{fig:markov}.  Each person in the network can be healthy but unvaccinated (susceptible), currently infected, or vaccinated.  The disease spreads along the network's social connections: an infected person can transmit the disease to susceptible and, at a lower rate, vaccinated neighbors.  A key feature of our model is that the vaccination rate at each location depends on the distance to the nearest open facility---capturing the real-world observation that people are more likely to get vaccinated when a facility is nearby and accessible.
+
+On the mathematical side, we use established techniques from mathematical epidemiology~\cite{vandenDriessche2002} to derive the reproduction number $\mathcal{R}_0$, which determines whether an epidemic will grow or die out for a given set of open facilities.  We have already completed significant analytical work, including proofs that (i)~$\mathcal{R}_0$ decreases as more facilities are opened, and (ii)~the disease-free state is stable whenever $\mathcal{R}_0 < 1$.  These results provide the theoretical foundation that guides and validates the AI-based approach.
+
+\textbf{Phase 2: AI agent development and training.}
+The core computational contribution is an RL agent that learns to manage vaccination facilities over time.  The agent operates on a ``observe--decide--observe'' cycle: at each decision point, it sees the current infection levels across the network and the status of all facilities, then decides which facilities to open and which to close.  Between decisions, the epidemic evolves according to the simulation model.  The agent is rewarded for keeping infections low while minimizing facility costs.
+
+The agent's ``brain'' is a graph neural network (GNN)~\cite{kipf2016semi}---a type of deep learning architecture specifically designed for data that lives on networks.  The GNN processes the contact network and facility locations to produce a decision for each facility.  Training is performed using PPO~\cite{schulman2017proximal}, a widely used RL algorithm that has demonstrated strong performance in complex decision-making tasks.  To ensure the agent generalizes well, it is trained on thousands of randomly generated problem instances with varying network sizes, topologies, and disease parameters---a technique known as \emph{domain randomization}.
+
+\textbf{Phase 3: Evaluation and benchmarking.}
+The trained agent will be evaluated against several intuitive baseline strategies:
+\begin{itemize}
+    \item \textbf{All-open}: every facility is kept open at all times (maximizes vaccination access but incurs high cost).
+    \item \textbf{All-closed}: no facilities are open (zero operational cost but no vaccination).
+    \item \textbf{Threshold}: facilities are opened only when nearby infection rates exceed a critical level.
+    \item \textbf{Greedy}: at each decision point, open the single facility that yields the largest immediate cost reduction.
+\end{itemize}
+We will compare strategies using total cost, peak infection rate, and time until the epidemic is brought under control.
+
+\section{Contribution of the Proposed Research}
+This research contributes to both theory and practice at the intersection of operations research, public health, and artificial intelligence.
+
+\textbf{Dynamic vs.\ static facility location.}  Most existing models for locating healthcare facilities during epidemics treat the problem as a one-time decision~\cite{li2022deploying}.  Our framework allows facility configurations to change over time in response to the evolving epidemic, capturing a realistic operational dimension that static models miss.  This is analogous to recent advances in dynamic facility location in supply chain management~\cite{Jena2016}, but applied to the public health domain with explicit epidemic dynamics.
+
+\textbf{Bridging mathematical epidemiology and AI.}  While recent work has applied RL to various aspects of epidemic control---such as vaccine allocation~\cite{hao2022reinforcement, ardjmand2024guided}, intervention planning~\cite{mai2023planning}, and resource optimization~\cite{bushaj2023simulation}---no prior study has combined a rigorous network-based epidemic model with a GNN-based RL agent for dynamic facility location.  Our analytical results (reproduction number, stability conditions) provide interpretable, theoretically grounded insights that complement the data-driven RL approach.
+
+\textbf{Practical decision support.}  If successfully developed, the framework can serve as a decision-support tool for public health planners managing vaccination campaigns, helping them decide when and where to deploy mobile vaccination units or open/close fixed-site clinics during an evolving epidemic.
+
+\section{Plans for Disseminating Research Results}
+The following journals are candidate targets for this research:
+\begin{itemize}
+    \item European Journal of Operational Research
+    \item Computers \& Operations Research
+\end{itemize}
+
+\section{Time Schedule for Research Completion}
+\begin{tabular*}{\textwidth}{|l @{\extracolsep{\fill}} r|}
+    \hline
+    Completion of Research & 2026-06-30 \\
+    Presentation in Meetings & 2026-10-31 \\
+    Submission of Manuscripts & 2026-12-31 \\
+    \hline
+\end{tabular*}
+
+\section{Have you received a College of Business Research Grant in the past three years?}
+Yes. Here are the publications where I have used previous seed grants:
+\begin{itemize}
+	\item Ardjmand, E., Izadi, E., Tavasoli, A., Moradi-Jamei, B., \& Shakeri, H. (2025). Graph-embedded reinforcement learning for dynamic pricing and advertising under network effects. Applied Soft Computing, 114056.
+    \item Ardjmand, E., Fallahtafti, A., Yazdani, E., Mahmoodi, A., \& Young II, W. A. (2024). A guided twin delayed deep deterministic reinforcement learning for vaccine allocation in human contact networks. Applied Soft Computing, 167, 112322.
+    \item Tavasoli, A., Fazli, M., Ardjmand, E., Young II, W. A., \& Shakeri, H. (2023). Competitive pricing under local network effects. European Journal of Operational Research, 311(2), 545-566.
+    \item Tavasoli, A., Shakeri, H., Ardjmand, E., \& Young II, W. A. (2021). Incentive rate determination in viral marketing. European Journal of Operational Research, 289(3), 1169-1187.
+    \item Ardjmand, E., Ghalehkhondabi, I., Young II, W. A., Sadeghi, A., Weckman, G. R., \& Shakeri, H. (2020). A hybrid artificial neural network, genetic algorithm and column generation heuristic for minimizing makespan in manual order picking operations. Expert Systems with Applications, 159, 113566.
+\end{itemize}
+
+\section{Itemized Research Budget}
+\begin{longtable}{|p{8cm}|p{4cm}|}
+    \hline
+    Budget Item & Amount \\
+    \hline
+    Six months subscription for ChatGPT Pro (\$200 per month) -- \url{https://chatgpt.com/pricing} & \$1,200 \\
+    \hline
+    Six months subscription for Claude Code Max 20x (\$200 per month) -- \url{https://claude.com/pricing/max} & \$1,200 \\
+    \hline
+    One year subscription for Overleaf Standard (\$199 per year) -- \url{https://www.overleaf.com/user/subscription/plans} & \$199 \\
+    \hline
+    \textbf{Total Research Budget} & \$2,599 \\
+    \hline
+    \textbf{Amount Available from other sources} & - \\
+    \hline
+    \textbf{Amount requested for funding from ICCIT} & \$2,599 \\
+    \hline
+\end{longtable}
+
+\section{Justification of Budget Items}
+\begin{itemize}
+    \item Six Months Subscription for ChatGPT Pro (\$1,200)
+    \begin{itemize}
+        \item \textbf{Mathematical Analysis and Theorem Development:} A central component of this research involves deriving and proving mathematical results about the epidemic model---for example, establishing when the disease will die out and how facility placement affects the reproduction number.  The ChatGPT Pro subscription provides access to advanced AI reasoning models that assist in developing proof strategies, identifying logical gaps, and exploring alternative mathematical approaches.  In prior work, these capabilities were instrumental in establishing key stability results for the epidemic model.
+        % \item \textbf{Software Development:} The research requires building and maintaining a complex software pipeline for epidemic simulation, neural network training, and policy evaluation.  ChatGPT Pro accelerates development by assisting with code generation, debugging, and algorithm refinement.
+        \item \textbf{Literature Review and Writing:}  The interdisciplinary nature of this work---spanning epidemiology, operations research, and AI---requires synthesizing insights from multiple fields.  Advanced AI tools assist in identifying relevant prior work and refining manuscript text for clarity.
+    \end{itemize}
+    \item Six Months Subscription for Claude Code Max 20x (\$1,200)
+    \begin{itemize}
+        \item \textbf{Codebase Development and Management:} Claude Code is an AI-powered coding assistant that operates directly within the development environment, reading and modifying code across multiple files with full project context.  This is particularly valuable for this project, which involves a multi-module Python codebase spanning epidemic simulation, environment wrappers, neural network architectures, training infrastructure, and evaluation scripts.  Claude Code can navigate the entire codebase, implement coordinated changes across modules, and run tests to verify correctness.
+        \item \textbf{Complementary to ChatGPT Pro:} The two AI tools serve complementary roles.  ChatGPT Pro excels at mathematical reasoning and theorem development, while Claude Code provides stronger performance in sustained, context-heavy coding sessions that require understanding the full project structure.
+        \item \textbf{High Usage Tier:} The Max 20x tier provides 20 times the usage capacity of the standard plan.  Given the scale of the codebase and the intensity of the development effort, this higher ceiling is necessary to support uninterrupted work sessions.
+    \end{itemize}
+    \item One Year Subscription for Overleaf Standard (\$199)
+    \begin{itemize}
+        \item \textbf{Collaborative Writing and Version Control:} Overleaf is a cloud-based writing platform widely used in scientific publishing.  It enables real-time collaboration, automatic version tracking, and seamless integration with journal submission systems.
+        \item \textbf{Mathematical Typesetting:} The manuscript involves extensive mathematical notation, proofs, and technical figures.  Overleaf provides the specialized typesetting environment (via \LaTeX) required by the target journals, including support for complex equations, cross-references, and publication-quality figures.
+    \end{itemize}
+\end{itemize}
+
+\section{Attach your CV and Background Work}
+Please find my CV at the end of this document.
+
+\section{Pooling Seed Grant Funds}
+I am not requesting any pooling seed grants.
+
+\bibliographystyle{unsrt}
+\bibliography{refs}
+
+\IfFileExists{CV.pdf}{\includepdf[pages=-]{CV.pdf}}{\vspace{1cm}\textbf{[CV.pdf not found -- place CV.pdf in this directory]}}
+
+\end{document}
