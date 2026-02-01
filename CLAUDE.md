@@ -100,7 +100,7 @@ tensorboard --logdir ./outputs/logs
 | Experiments | `sec:Experiments` | Not yet written |
 | Conclusions | `sec:Conclusions` | Not yet written |
 
-**Key labeled equations**: `eq:StochasticModel` (transition probabilities), `eq:meanfield` (mean-field ODEs), `eq:DFE` (disease-free equilibrium), `eq:R0` (reproduction number), `eq:R0_bounds` (spectral bounds), `eq:endemic_fixedpoint` (endemic self-consistency), `eq:endemic_quadratic` (homogeneous endemic quadratic).
+**Key labeled equations**: `eq:StochasticModel` (transition probabilities), `eq:meanfield` (mean-field ODEs), `eq:DFE` (disease-free equilibrium), `eq:R0` (reproduction number), `eq:R0_bounds` (spectral bounds), `eq:endemic_fixedpoint` (endemic self-consistency), `eq:endemic_CW` (Collatz-Wielandt bound in endemic proof), `eq:endemic_quadratic` (homogeneous endemic quadratic).
 
 **Key labeled results**: `prop:DFE`, `thm:DFE_stability`, `prop:R0_bounds`, `prop:R0_monotone`, `cor:no_vaccination`, `cor:homogeneous_vacc`, `cor:no_waning`, `cor:regular_graph`, `thm:endemic`, `prop:endemic_characterization`, `prop:endemic_homogeneous`.
 
