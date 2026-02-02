@@ -214,12 +214,19 @@ A node $i$ in the susceptible state ($S$) may become infected ($I$) at a rate pr
 
 Following infection, an individual transitions from the infected state ($I$) to the vaccinated state ($V$) at a recovery rate $\delta$. This transition captures the acquisition of post-infection immunity. However, this immunity is not assumed to be permanent. A node in the vaccinated state ($V$) may experience a breakthrough infection and transition back to the infected state ($I$) at a reduced infection rate of $\beta_2 N_i^I$, where $\beta_2 < \beta_1$ reflects partial immunity. Additionally, immunity may wane over time, and a vaccinated individual may return to the susceptible state ($S$) at a rate $\omega$, capturing the natural decay of immunity.
 
-Apart from acquiring immunity through recovery, a susceptible individual can become vaccinated. The vaccination rate for an individual $i$ is denoted by $\nu_i$ and is modeled as a decreasing function of the individual’s spatial distance to the nearest active vaccination facility. Let $\mathcal{M} = {m_1, m_2, \dots, m_M}$ denote the set of candidate vaccination facility locations, where each $m_j \in \mathbb{R}^2$ is specified by its spatial coordinates. Each individual $i \in \mathcal{V}$ is also assumed to occupy a fixed position $z_i \in \mathbb{R}^2$. If a subset $L \subseteq \mathcal{M}$ of these facilities is selected to be operational, then the vaccination rate for individual $i$ becomes:
+Apart from acquiring immunity through recovery, a susceptible individual can become vaccinated. The vaccination rate for an individual $i$ is denoted by $\nu_i$ and is modeled as a decreasing function of the individual’s spatial distance to the nearest active vaccination facility. Let $\mathcal{M} = \{m_1, m_2, \dots, m_M\}$ denote the set of candidate vaccination facility locations, where each $m_j \in \mathbb{R}^2$ is specified by its spatial coordinates. Each individual $i \in \mathcal{V}$ is also assumed to occupy a fixed position $z_i \in \mathbb{R}^2$. If a subset $L \subseteq \mathcal{M}$ of these facilities is selected to be operational, then the vaccination rate for individual $i$ becomes:
 
 \[
-\nu_i(L) = v_{min} +  (v_{max} - v_{min})e^{-\alpha d_i(L)}, \qquad d_i(L) = \min_{m \in L} \| z_i - c \|.
+\nu_i(L) = v_{\min} + (v_{\max} - v_{\min})e^{-\alpha d_i(L)},
+\qquad
+d_i(L) = \min_{m \in L} \| z_i - m \|_2 .
 \]
-\noindent where, $v_{max}$ and $v_{min}$ denote the minimum and maximum achievable vaccination rates, corresponding to zero and infinite distance from a facility, $\alpha > 0$ is a decay parameter controlling how quickly the vaccination rate decreases with increasing distance, and $d_i(L)$ represents the shortest Euclidean distance between individual $i$ and the nearest facility in the active set $L$.
+\noindent where $v_{max}$ is the maximum rate at zero distance, $v_{min}$ is the baseline rate when there is no open facility (i.e., $L = \emptyset$), $\alpha > 0$ is a decay parameter controlling how quickly the vaccination rate decreases with increasing distance, and $d_i(L)$ represents the Euclidean distance between individual $i$ and the nearest facility in the active set $L$. Note that we adopt the convention that if no facilities are open, then the distance is infinite:
+\[
+d_i(\emptyset) = +\infty,
+\qquad\text{so that}\qquad
+\nu_i(\emptyset) = v_{\min}.
+\]
 
 Figure~\ref{fig:MarkovModel} illustrates the corresponding state-transition diagram for this model, along with an example contact network composed of four individuals. Each node resides in one of the three possible states: susceptible ($S$), infected ($I$), or vaccinated ($V$). In this example, two individuals are susceptible, one is infected, and one is vaccinated, highlighting the heterogeneity in state distribution across the network.
 
@@ -242,7 +249,7 @@ Figure~\ref{fig:MarkovModel} illustrates the corresponding state-transition diag
 
 This study employs \ac{RL} to dynamically determine the optimal subset of vaccination facilities $L \subseteq \mathcal{M}$ to be open at any given time. To facilitate this process, the time horizon is discretized into $t = 1, 2, \dots, T$ decision steps. At the beginning of each time step, the \ac{RL} agent evaluates the status of each candidate facility $m_j \in \mathcal{M}$ and decides whether it should be opened or closed.
 
-Opening a facility incurs a one-time setup cost denoted by $f^+$, while closing an existing facility incurs a decommissioning cost $f^-$. In addition to these transition costs, each facility that remains operational during a time step incurs a fixed operational cost $C_O$, which accounts for expenses such as personnel, rent, and utilities. The model also includes health-related costs: each vaccinated individual incurs a vaccination cost $C_V$, and each infected individual generates a disease burden cost $C_I$.
+Opening a facility incurs a one-time setup cost denoted by $f^+$, while closing an existing facility incurs a decommissioning cost $f^-$. In addition to these transition costs, each facility that remains operational during a time step incurs a fixed operational cost $C_O$, which accounts for expenses such as personnel, rent, and utilities. The model also includes health-related costs: each vaccination administered (i.e., each $S\to V$ transition due to vaccination) incurs a cost $C_V$, and each infected individual generates a disease burden cost $C_I$.
 
 The objective of the \ac{RL} agent is to minimize the cumulative cost over the planning horizon. This total cost includes the expenses associated with opening and closing facilities, operational costs, vaccination costs, and the social or economic cost of infections across the population. It is assumed that each open facility has unlimited service capacity within a time step, allowing it to vaccinate any number of individuals. Furthermore, the time required to open or close a facility is considered negligible, and the underlying structure of the contact network is assumed to remain unchanged during these administrative actions.
 
@@ -269,7 +276,7 @@ In the \ac{SIV} framework illustrated in Figure~\ref{fig:MarkovModel}, let \(s_i
         \end{aligned}
 \end{equation}
 
-\noindent where \(\mathcal N_i\) denotes the neighborhood of node \(i\) and $1_{\{\mathcal X\}}$ is the indicator function.  The symbol \(o(\Delta t)\) collects higher-order infinitesimals satisfying $\lim\limits_{\Delta t \to 0} \frac{o(\Delta t)}{\Delta t} = 0$.  Infection rates satisfy \(\beta_{2} < \beta_{1}\) to reflect the partial protection afforded by vaccination, while \(\delta\) and \(\omega\) capture recovery with immunity and waning immunity, respectively. \(\nu_i(L) = v_{min} +  (v_{max} - v_{min})e^{-\alpha d_i(L)}\) models the vaccination rate for node \(i\) where \(v_{\max}\) and \(v_{\min}\) are the maximum and minimum achievable vaccination rate, \(\alpha>0\) is a decay parameter, and \(d_i(L)\) is the shortest-path distance from node \(i\) to the closest vaccination open facility among the set \(L\).
+\noindent where \(\mathcal N_i\) denotes the neighborhood of node \(i\) and $1_{\{\mathcal X\}}$ is the indicator function.  The symbol \(o(\Delta t)\) collects higher-order infinitesimals satisfying $\lim\limits_{\Delta t \to 0} \frac{o(\Delta t)}{\Delta t} = 0$.  Infection rates satisfy \(\beta_{2} < \beta_{1}\) to reflect the partial protection afforded by vaccination, while \(\delta\) and \(\omega\) capture recovery with immunity and waning immunity, respectively. \(\nu_i(L) = v_{min} +  (v_{max} - v_{min})e^{-\alpha d_i(L)}\) models the vaccination rate for node \(i\) where \(v_{\max}\) and \(v_{\min}\) are the maximum and minimum achievable vaccination rate, corresponding to zero and infinite distance from a facility, respectively, \(\alpha>0\) is a decay parameter, and $d_i(L)$ is the Euclidean distance from individual $i$ (located at $z_i\in\mathbb R^2$) to the closest open facility in the set $L$.
 
 Model~\eqref{eq:StochasticModel} thus encodes the probability that node \(i\) changes compartment during \([t,t+\Delta t]\) given its current compartment and the infection status of its neighbors. Passing to the limit \(\Delta t \to 0\) yields a system of forward equations that forms the basis for both exact stochastic simulations and deterministic mean-field approximations in subsequent analyses.
 
@@ -286,13 +293,13 @@ Assuming a mean-field approximation (independence between node states), we deriv
 
 \begin{equation} \label{eq:meanfield}
 	\begin{aligned}
-	\frac{dS_i}{dt} &= - \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j - \nu_i(d_i) S_i + \omega V_i \\
+	\frac{dS_i}{dt} &= - \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j - \nu_i(L)\, S_i + \omega V_i \\
 	\frac{dI_i}{dt} &= \beta_1 S_i \sum_{j \in \mathcal{N}_i} I_j + \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \delta I_i \\
-	\frac{dV_i}{dt} &= \nu_i(d_i) S_i + \delta I_i - \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \omega V_i
+	\frac{dV_i}{dt} &= \nu_i(L)\, S_i + \delta I_i - \beta_2 V_i \sum_{j \in \mathcal{N}_i} I_j - \omega V_i
 	\end{aligned}
 \end{equation}
 
-Here, \( \mathcal{N}_i \) denotes the neighborhood of node \( i \), and:
+Here $\nu_i(L)$ is treated as a parameter determined by the (fixed) facility configuration $L$, \( \mathcal{N}_i \) denotes the neighborhood of node \( i \), and:
 \begin{itemize}
     \item \( \beta_1 \): infection rate from susceptible to infected,
     \item \( \beta_2 \): infection rate from vaccinated to infected,
@@ -594,7 +601,9 @@ b = k\,\bigl[\beta_1(\delta + \omega - \beta_2 k) + \beta_2 \nu\bigr].
 \]
 Substituting the critical value of $\delta$ and simplifying:
 \[
-b = \frac{k\,\bigl[\beta_1 \omega\, k(\beta_1 - \beta_2) + (\beta_1 \omega + \beta_2 \nu)(\beta_1 + \beta_2)\bigr]}{\nu + \omega},
+b
+= \frac{k\Big(\beta_1 k \omega(\beta_1-\beta_2) + (\nu+\omega)(\beta_1\omega+\beta_2\nu)\Big)}{\nu+\omega}
+\;>\;0,
 \]
 which is strictly positive since $\beta_1 > \beta_2 > 0$.  Thus the second root $I = -b/(\beta_1 \beta_2 k^2) < 0$ is negative, confirming that the endemic branch with $I^{\star} > 0$ exists only for $\mathcal{R}_0 > 1$ (forward bifurcation).
 \end{proof}
