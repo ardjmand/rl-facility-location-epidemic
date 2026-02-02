@@ -276,7 +276,17 @@ In the \ac{SIV} framework illustrated in Figure~\ref{fig:MarkovModel}, let \(s_i
         \end{aligned}
 \end{equation}
 
-\noindent where \(\mathcal N_i\) denotes the neighborhood of node \(i\) and $1_{\{\mathcal X\}}$ is the indicator function.  The symbol \(o(\Delta t)\) collects higher-order infinitesimals satisfying $\lim\limits_{\Delta t \to 0} \frac{o(\Delta t)}{\Delta t} = 0$.  Infection rates satisfy \(\beta_{2} < \beta_{1}\) to reflect the partial protection afforded by vaccination, while \(\delta\) and \(\omega\) capture recovery with immunity and waning immunity, respectively. \(\nu_i(L) = v_{min} +  (v_{max} - v_{min})e^{-\alpha d_i(L)}\) models the vaccination rate for node \(i\) where \(v_{\max}\) and \(v_{\min}\) are the maximum and minimum achievable vaccination rate, corresponding to zero and infinite distance from a facility, respectively, \(\alpha>0\) is a decay parameter, and $d_i(L)$ is the Euclidean distance from individual $i$ (located at $z_i\in\mathbb R^2$) to the closest open facility in the set $L$.
+\noindent where \(\mathcal N_i\) denotes the neighborhood of node \(i\) and $1_{\{\mathcal X\}}$ is the indicator function.  The symbol \(o(\Delta t)\) collects higher-order infinitesimals satisfying $\lim\limits_{\Delta t \to 0} \frac{o(\Delta t)}{\Delta t} = 0$.  Infection rates satisfy \(\beta_{2} < \beta_{1}\) to reflect the partial protection afforded by vaccination, while \(\delta\) and \(\omega\) capture recovery with immunity and waning immunity, respectively.
+
+Vaccination access is encoded through the rate
+\[
+\nu_i(L) \;=\; v_{\min} + (v_{\max}-v_{\min}) e^{-\alpha d_i(L)},
+\]
+where $v_{\max}$ and $v_{\min}$ denote the maximum and minimum achievable vaccination rates, corresponding to zero and infinite distance from a facility, respectively, $\alpha>0$ is a decay parameter, and
+\[
+d_i(L) \;=\; \min_{m\in L} \|z_i-m\|_2
+\]
+is the Euclidean distance from individual $i$ (located at $z_i\in\mathbb R^2$) to the closest open facility in the set $L$.  We adopt the convention $d_i(\emptyset)=+\infty$, so that $\nu_i(\emptyset)=v_{\min}$ when no facilities are open.
 
 Model~\eqref{eq:StochasticModel} thus encodes the probability that node \(i\) changes compartment during \([t,t+\Delta t]\) given its current compartment and the infection status of its neighbors. Passing to the limit \(\Delta t \to 0\) yields a system of forward equations that forms the basis for both exact stochastic simulations and deterministic mean-field approximations in subsequent analyses.
 
@@ -313,7 +323,8 @@ Here $\nu_i(L)$ is treated as a parameter determined by the (fixed) facility con
 The \ac{DFE} corresponds to a steady state in which no individual in the network is infected.  Setting $I_i(t) = 0$ for all $i \in \mathcal{V}$ in the mean-field system~\eqref{eq:meanfield}, we obtain the following characterization.
 
 \begin{proposition}[Disease-Free Equilibrium] \label{prop:DFE}
-The mean-field system~\eqref{eq:meanfield} admits a unique \ac{DFE} given by
+Assume $\nu_i(L)+\omega>0$ for all $i$ (in particular, this holds if $\omega>0$). 
+Then the mean-field system~\eqref{eq:meanfield} admits a unique \ac{DFE} given by
 \begin{equation} \label{eq:DFE}
 \bigl(S_i^{\star},\, I_i^{\star},\, V_i^{\star}\bigr) = \left( \frac{\omega}{\nu_i + \omega},\; 0,\; \frac{\nu_i}{\nu_i + \omega} \right), \qquad i = 1, \ldots, n,
 \end{equation}
@@ -325,7 +336,7 @@ Setting $I_i = 0$ in~\eqref{eq:meanfield}, the equations for $S_i$ and $V_i$ red
 \[
 \frac{dS_i}{dt} = -\nu_i S_i + \omega V_i, \qquad \frac{dV_i}{dt} = \nu_i S_i - \omega V_i.
 \]
-At equilibrium, $\nu_i S_i = \omega V_i$.  Together with the conservation law $S_i + V_i = 1$ (since $I_i = 0$), this yields $S_i^{\star} = \omega / (\nu_i + \omega)$ and $V_i^{\star} = \nu_i / (\nu_i + \omega)$.
+At equilibrium, $\nu_i S_i = \omega V_i$.  Together with the conservation law $S_i + V_i = 1$ (since $I_i = 0$), this yields $S_i^{\star} = \omega / (\nu_i + \omega)$ and $V_i^{\star} = \nu_i / (\nu_i + \omega)$.  The condition $\nu_i+\omega>0$ ensures the equilibrium is well-defined and unique.
 \end{proof}
 
 \begin{remark} \label{rem:DFE_heterogeneous}
@@ -341,6 +352,32 @@ At the \ac{DFE}, define the \emph{effective transmission coefficient} for node~$
 \lambda_i \;=\; \beta_1 S_i^{\star} + \beta_2 V_i^{\star} \;=\; \frac{\beta_1 \omega + \beta_2 \nu_i}{\nu_i + \omega}.
 \end{equation}
 This quantity captures the weighted susceptibility of node~$i$ at the \ac{DFE}, combining contributions from the susceptible fraction (with infection rate $\beta_1$) and the vaccinated fraction (with breakthrough infection rate $\beta_2 < \beta_1$).  Let $\Lambda = \mathrm{diag}(\lambda_1, \ldots, \lambda_n)$ collect these coefficients.
+
+\begin{lemma}[Properties of $\lambda_i$] \label{lem:lambda_properties}
+Assume $\beta_1>\beta_2>0$ and $\nu_i,\omega\ge 0$. Then
+\begin{equation}\label{eq:lambda_convex_combo}
+\lambda_i \;=\; \beta_2 + (\beta_1-\beta_2)\,\frac{\omega}{\nu_i+\omega},
+\end{equation}
+so $\beta_2 \le \lambda_i \le \beta_1$. Moreover, whenever $\nu_i+\omega>0$,
+\begin{align}
+\frac{\partial \lambda_i}{\partial \omega}
+&= \frac{(\beta_1-\beta_2)\,\nu_i}{(\nu_i+\omega)^2}\;\ge\;0, \label{eq:dlam_domega}\\
+\frac{\partial \lambda_i}{\partial \beta_1}
+&= \frac{\omega}{\nu_i+\omega} \;=\; S_i^\star,\label{eq:dlam_db1}\\
+\frac{\partial \lambda_i}{\partial \beta_2}
+&= \frac{\nu_i}{\nu_i+\omega} \;=\; V_i^\star.\label{eq:dlam_db2}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Equation~\eqref{eq:lambda_convex_combo} follows by rewriting~\eqref{eq:lambda_i} as
+\[
+\lambda_i=\frac{\beta_1\omega+\beta_2\nu_i}{\nu_i+\omega}
+=\beta_2+\frac{(\beta_1-\beta_2)\omega}{\nu_i+\omega}.
+\]
+Since $\nu_i,\omega\ge 0$, we have $0\le \omega/(\nu_i+\omega)\le 1$, which implies $\beta_2\le \lambda_i\le \beta_1$.
+The derivatives follow from direct differentiation of~\eqref{eq:lambda_i}.
+\end{proof}
 
 \begin{theorem}[Stability of the Disease-Free Equilibrium] \label{thm:DFE_stability}
 Assume the contact network $\mathcal{G}$ is connected and $\omega > 0$.  The \ac{DFE}~\eqref{eq:DFE} is locally asymptotically stable if $\mathcal{R}_0(L) < 1$ and unstable if $\mathcal{R}_0(L) > 1$, where
@@ -409,6 +446,46 @@ Since $\lambda_{\max}^{-1} \|\bm{y}\|^2 \leq \bm{y}^{\!\top} \Lambda^{-1} \bm{y}
 Dividing by $\delta$ yields~\eqref{eq:R0_bounds}.  When $\lambda_i = \lambda$ for all $i$, we have $\Lambda = \lambda I_n$ and $\rho(\Lambda A) = \lambda\, \rho(A)$ exactly.
 \end{proof}
 
+\begin{proposition}[Degree-weighted bounds] \label{prop:R0_degree_bounds}
+Let $k_i = \sum_{j=1}^n a_{ij}$ denote the degree of node $i$ and define the row sums of $\Lambda A$ by
+$r_i(L) = \sum_{j=1}^n (\Lambda A)_{ij} = \lambda_i(L)\,k_i$.
+If $\mathcal G$ is connected (so $\Lambda A$ is irreducible and nonnegative), then
+\begin{equation}\label{eq:R0_degree_bounds}
+\frac{1}{\delta}\,\min_i \lambda_i(L)\,k_i
+\;\le\;
+\mathcal R_0(L)
+\;\le\;
+\frac{1}{\delta}\,\max_i \lambda_i(L)\,k_i.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For a nonnegative matrix $M$, $\rho(M)\le \|M\|_\infty$, where $\|\cdot\|_\infty$ is the maximum absolute row-sum norm.  Since $\Lambda A$ is nonnegative, 
+\[
+\rho(\Lambda A)\le \|\Lambda A\|_\infty = \max_i \sum_{j=1}^n (\Lambda A)_{ij} = \max_i \lambda_i k_i.
+\]
+For the lower bound, apply the Collatz--Wielandt formula to the irreducible nonnegative matrix $\Lambda A$ with $\bm{x}=\bm{1}$:
+\[
+\rho(\Lambda A)=\max_{\bm{x}\gg 0}\min_i \frac{(\Lambda A\bm{x})_i}{x_i}
+\;\ge\;
+\min_i \frac{(\Lambda A\bm{1})_i}{1}
+=
+\min_i \lambda_i k_i.
+\]
+Dividing both bounds by $\delta$ yields~\eqref{eq:R0_degree_bounds}.
+\end{proof}
+
+\begin{corollary}[Absolute bounds] \label{cor:R0_abs_bounds}
+For any facility configuration $L$,
+\[
+\frac{\beta_2}{\delta}\,\rho(A)\;\le\;\mathcal R_0(L)\;\le\;\frac{\beta_1}{\delta}\,\rho(A).
+\]
+\end{corollary}
+
+\begin{proof}
+By Lemma~\ref{lem:lambda_properties}, $\beta_2\le \lambda_i\le \beta_1$ for all $i$, so $\lambda_{\min}\ge \beta_2$ and $\lambda_{\max}\le \beta_1$.  Substitute into Proposition~\ref{prop:R0_bounds}.
+\end{proof}
+
 We next establish that improving vaccination access monotonically reduces the reproduction number.
 
 \begin{proposition}[Monotonicity in Facility Configuration] \label{prop:R0_monotone}
@@ -428,8 +505,162 @@ The derivative~\eqref{eq:lambda_deriv} follows from direct differentiation of~\e
 Since $A$ is nonnegative and $\Lambda(L') \leq \Lambda(L)$ componentwise (both being diagonal with nonnegative entries), the entrywise inequality $\Lambda(L') A \leq \Lambda(L) A$ holds.  By the monotonicity property of the Perron--Frobenius eigenvalue for nonnegative matrices, $\rho(\Lambda(L') A) \leq \rho(\Lambda(L) A)$, which gives~\eqref{eq:R0_monotone}.
 \end{proof}
 
+\begin{corollary}[Monotonicity in epidemiological parameters]\label{cor:R0_param_monotone}
+Fix the network $A$ and a facility configuration $L$. Then $\mathcal R_0(L)=\rho(\Lambda A)/\delta$ is:
+(i) strictly decreasing in $\delta$,
+(ii) nondecreasing in $\beta_1$ and $\beta_2$, and
+(iii) nondecreasing in $\omega$ (strict if $\nu_i(L)>0$ for some $i$).
+\end{corollary}
+
+\begin{proof}
+The dependence on $\delta$ is explicit: $\mathcal R_0(L)=\rho(\Lambda A)/\delta$.
+For $\beta_1,\beta_2,\omega$, note from Lemma~\ref{lem:lambda_properties} that $\partial \lambda_i/\partial \beta_1\ge 0$, $\partial \lambda_i/\partial \beta_2\ge 0$, and $\partial \lambda_i/\partial \omega\ge 0$.  Since $\Lambda A$ is nonnegative, increasing any diagonal entry of $\Lambda$ increases $\rho(\Lambda A)$ by Perron--Frobenius monotonicity, hence the stated monotonicities for $\mathcal R_0(L)$.
+\end{proof}
+
+\begin{proposition}[A sufficient coverage condition for $\mathcal R_0(L)<1$]\label{prop:coverage_sufficient}
+Assume every node lies within distance $D$ of an open facility, i.e., $\max_i d_i(L)\le D$.
+Define
+\[
+\underline{\nu}(D)=v_{\min}+(v_{\max}-v_{\min})e^{-\alpha D}.
+\]
+Then $\nu_i(L)\ge \underline{\nu}(D)$ for all $i$, and hence $\lambda_i(L)\le \overline{\lambda}(D)$ for all $i$, where
+\begin{equation}\label{eq:lambda_bar_D}
+\overline{\lambda}(D)=\frac{\beta_1\omega+\beta_2\underline{\nu}(D)}{\underline{\nu}(D)+\omega}.
+\end{equation}
+Consequently,
+\begin{equation}\label{eq:R0_cover_bound}
+\mathcal R_0(L)\le \frac{\overline{\lambda}(D)}{\delta}\,\rho(A).
+\end{equation}
+In particular, a sufficient condition for disease elimination is $\overline{\lambda}(D)\,\rho(A)<\delta$.
+\end{proposition}
+
+\begin{proof}
+If $\max_i d_i(L)\le D$, then $d_i(L)\le D$ for all $i$, and since $d\mapsto e^{-\alpha d}$ is decreasing, we have $e^{-\alpha d_i(L)}\ge e^{-\alpha D}$. Hence
+\[
+\nu_i(L)=v_{\min}+(v_{\max}-v_{\min})e^{-\alpha d_i(L)}\ge v_{\min}+(v_{\max}-v_{\min})e^{-\alpha D}=\underline{\nu}(D).
+\]
+By~\eqref{eq:lambda_deriv}, $\lambda_i$ is decreasing in $\nu_i$ (for $\omega>0$), so $\nu_i(L)\ge \underline{\nu}(D)$ implies $\lambda_i(L)\le \overline{\lambda}(D)$ where $\overline{\lambda}(D)$ is~\eqref{eq:lambda_bar_D}.  Then Proposition~\ref{prop:R0_bounds} gives
+\[
+\mathcal R_0(L)=\frac{1}{\delta}\rho(\Lambda A)\le \frac{1}{\delta}\lambda_{\max}\rho(A)\le \frac{1}{\delta}\overline{\lambda}(D)\rho(A),
+\]
+which is~\eqref{eq:R0_cover_bound}.
+\end{proof}
+
+\begin{theorem}[Spectral sensitivity of $\mathcal R_0$]\label{thm:R0_sensitivity}
+Let $M=\Lambda A$ be irreducible and let $\rho=\rho(M)$. 
+Let $\bm v\gg 0$ and $\bm u\gg 0$ be the right/left Perron eigenvectors,
+\[
+M\bm v=\rho\bm v,
+\qquad
+\bm u^\top M=\rho\bm u^\top,
+\]
+normalized so that $\bm u^\top \bm v=1$. Then for each $i$,
+\begin{equation}\label{eq:drho_dlambda}
+\frac{\partial \rho(\Lambda A)}{\partial \lambda_i}
+= u_i\,(A\bm v)_i,
+\qquad\text{and hence}\qquad
+\frac{\partial \mathcal R_0}{\partial \lambda_i}
+=\frac{1}{\delta}\,u_i\,(A\bm v)_i.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Since $M$ is irreducible and nonnegative, $\rho$ is a simple eigenvalue (Perron--Frobenius), so standard eigenvalue perturbation theory applies. For a perturbation $\Delta M$, the first-order change in $\rho$ is
+\[
+\Delta \rho = \bm u^\top (\Delta M)\bm v + o(\|\Delta M\|),
+\]
+under the normalization $\bm u^\top \bm v=1$.
+Here $M(\lambda)=\Lambda A$ and $\partial M/\partial \lambda_i = E_{ii}A$, where $E_{ii}$ is the matrix with a $1$ in entry $(i,i)$ and zeros elsewhere. Therefore,
+\[
+\frac{\partial \rho}{\partial \lambda_i}
+=\bm u^\top (E_{ii}A)\bm v
+= u_i\,(A\bm v)_i,
+\]
+which gives~\eqref{eq:drho_dlambda}. Dividing by $\delta$ yields the formula for $\partial \mathcal R_0/\partial \lambda_i$.
+\end{proof}
+
+\begin{corollary}[Sensitivity to vaccination access]\label{cor:R0_access_sensitivity}
+Under the assumptions of Theorem~\ref{thm:R0_sensitivity} and $\omega>0$,
+\begin{align}
+\frac{\partial \mathcal R_0}{\partial \nu_i}
+&=\frac{1}{\delta}\,u_i\,(A\bm v)_i\,
+\frac{(\beta_2-\beta_1)\omega}{(\nu_i+\omega)^2}
+\;<\;0, \label{eq:dR0_dnu}\\[4pt]
+\frac{\partial \mathcal R_0}{\partial d_i}
+&=\frac{\partial \mathcal R_0}{\partial \nu_i}\cdot
+\frac{\partial \nu_i}{\partial d_i}
+=\frac{1}{\delta}\,u_i\,(A\bm v)_i\,
+\frac{(\beta_1-\beta_2)\omega}{(\nu_i+\omega)^2}\,
+\alpha(v_{\max}-v_{\min})e^{-\alpha d_i}
+\;>\;0. \label{eq:dR0_dd}
+\end{align}
+\end{corollary}
+
+\begin{proof}
+Equation~\eqref{eq:dR0_dnu} follows from the chain rule:
+\[
+\frac{\partial \mathcal R_0}{\partial \nu_i}
+=
+\frac{\partial \mathcal R_0}{\partial \lambda_i}
+\frac{\partial \lambda_i}{\partial \nu_i},
+\]
+using~\eqref{eq:drho_dlambda} and~\eqref{eq:lambda_deriv}.  For~\eqref{eq:dR0_dd}, note that
+\[
+\frac{\partial \nu_i}{\partial d_i}
+=-(v_{\max}-v_{\min})\alpha e^{-\alpha d_i},
+\]
+so multiplying by~\eqref{eq:dR0_dnu} yields~\eqref{eq:dR0_dd}.
+\end{proof}
+
+\begin{remark}[Implication for \ac{RL} guidance]\label{rem:R0_sensitivity_RL}
+Corollary~\ref{cor:R0_access_sensitivity} implies that the marginal epidemiological value of improving access for node $i$ is proportional to the weight $u_i(A\bm v)_i$, which depends on the Perron left/right eigenvectors of $\Lambda A$.  This provides a principled, network-aware importance score that can be used to design baselines (e.g., open facilities that most reduce weighted distances) or to shape learning signals for \ac{RL}.
+\end{remark}
+
+\subsection{A Submodular Access Surrogate (Facility-Location Baseline)} \label{subsec:submodular_access}
+
+While $\mathcal R_0(L)$ is the central epidemic threshold, it is nonlinear and costly to evaluate for all configurations. A useful surrogate for vaccination access is the exponential coverage score
+\[
+g(L)=\sum_{i=1}^n e^{-\alpha d_i(L)}.
+\]
+
+\begin{lemma}[Submodularity of exponential-access coverage]\label{lem:submod_access}
+The set function $g:2^{\mathcal M}\to \mathbb R$ defined by
+\[
+g(L)=\sum_{i=1}^n e^{-\alpha d_i(L)}=\sum_{i=1}^n \max_{m\in L} e^{-\alpha\|z_i-m\|_2}
+\]
+(with the convention $\max_{m\in\emptyset}(\cdot)=0$) is monotone nondecreasing and submodular.
+Consequently, $\sum_{i=1}^n \nu_i(L)=n v_{\min}+(v_{\max}-v_{\min})g(L)$ is also monotone submodular.
+\end{lemma}
+
+\begin{proof}
+Fix $i$ and define $g_i(L)=\max_{m\in L} w_{im}$ where $w_{im}=e^{-\alpha\|z_i-m\|_2}\in(0,1]$ and $g_i(\emptyset)=0$.
+Monotonicity is immediate since enlarging $L$ can only increase the maximum.
+To show submodularity, let $L\subseteq L'$ and $m\notin L'$. The marginal gain satisfies
+\[
+g_i(L\cup\{m\})-g_i(L)=\max\{g_i(L),w_{im}\}-g_i(L)=\max\{0,w_{im}-g_i(L)\}.
+\]
+Since $g_i(L')\ge g_i(L)$, we have $w_{im}-g_i(L')\le w_{im}-g_i(L)$, hence
+\[
+g_i(L'\cup\{m\})-g_i(L')=\max\{0,w_{im}-g_i(L')\}\le \max\{0,w_{im}-g_i(L)\}=g_i(L\cup\{m\})-g_i(L).
+\]
+Thus $g_i$ is submodular; summing over $i$ preserves submodularity, so $g$ is submodular.
+The affine transformation to $\sum_i \nu_i(L)$ preserves submodularity.
+\end{proof}
+
+\begin{corollary}[Greedy approximation under a facility budget]\label{cor:greedy_access}
+If one imposes a cardinality constraint $|L|\le K$ and seeks to maximize $g(L)$, the standard greedy algorithm attains
+\[
+g(L_{\mathrm{greedy}})\ge (1-1/e)\,g(L^\star),
+\]
+where $L^\star$ is an optimal size-$K$ set.
+\end{corollary}
+
+\begin{proof}
+This is the classical Nemhauser--Wolsey result for monotone submodular maximization under a cardinality constraint.
+\end{proof}
+
 \begin{remark}[Policy Interpretation] \label{rem:policy}
-Proposition~\ref{prop:R0_monotone} provides a theoretical justification for opening vaccination facilities: enlarging the set of open facilities $L$ monotonically reduces $\mathcal{R}_0(L)$.  However, each facility incurs operational costs~$C_O$ per time step and transition costs~$f^+$ (opening) and~$f^-$ (closing).  The reproduction number $\mathcal{R}_0(L)$ quantifies the epidemiological benefit of a given configuration, while the cost model captures the associated economic burden.  The \ac{RL} agent seeks facility configurations that balance these competing objectives, achieving favorable epidemic outcomes at minimum total cost.
+Proposition~\ref{prop:R0_monotone} provides a theoretical justification for opening vaccination facilities: enlarging the set of open facilities $L$ monotonically reduces $\mathcal{R}_0(L)$.  However, each facility incurs operational costs~$C_O$ per time step and transition costs~$f^+$ (opening) and~$f^-$ (closing).  The reproduction number $\mathcal{R}_0(L)$ quantifies the epidemiological benefit of a given configuration, while the cost model captures the associated economic burden.  The \ac{RL} agent seeks facility configurations that balance these competing objectives, achieving favorable epidemic outcomes at minimum total cost.  Lemma~\ref{lem:submod_access} additionally provides a tractable access surrogate and a provable greedy baseline under budgeted variants of the facility-location problem.
 \end{remark}
 
 \subsection{Special Cases} \label{subsec:special_cases}
@@ -483,7 +714,7 @@ When $\mathcal{R}_0(L) > 1$, the \ac{DFE} is unstable and the disease persists i
 Assume the contact network $\mathcal{G}$ is connected and $\omega > 0$.
 \begin{enumerate}[(i)]
     \item If $\mathcal{R}_0(L) \leq 1$, then the \ac{DFE}~\eqref{eq:DFE} is the only nonnegative equilibrium of~\eqref{eq:meanfield}.
-    \item If $\mathcal{R}_0(L) > 1$, there exists an endemic equilibrium $(S_i^{\star}, I_i^{\star}, V_i^{\star})$ with $I_i^{\star} > 0$ for all $i \in \mathcal{V}$.  The bifurcation at $\mathcal{R}_0(L) = 1$ is forward (transcritical): the endemic branch emerges continuously as $\mathcal{R}_0(L)$ crosses unity from below.
+    \item If $\mathcal{R}_0(L) > 1$, there exists an endemic equilibrium $(S_i^{\star}, I_i^{\star}, V_i^{\star})$ with $I_i^{\star} > 0$ for all $i \in \mathcal{V}$.  The bifurcation at $\mathcal{R}_0(L) = 1$ is forward: the endemic branch emerges continuously as $\mathcal{R}_0(L)$ crosses unity from below.
 \end{enumerate}
 \end{theorem}
 
@@ -529,7 +760,7 @@ We verify three properties of~$\Phi$:
 
 Now define the monotone iteration $\bm{I}^{(0)} = \varepsilon_0 \bm{v}$ and $\bm{I}^{(k+1)} = \Phi(\bm{I}^{(k)})$ for $k \geq 0$.  By~(c), $\bm{I}^{(1)} = \Phi(\bm{I}^{(0)}) \geq \bm{I}^{(0)}$.  By~(b) and induction, $\{\bm{I}^{(k)}\}$ is componentwise nondecreasing.  By~(a), it is bounded above by~$\bm{1}$.  Therefore $\bm{I}^{(k)} \to \bm{I}^{\star}$ as $k \to \infty$, and by continuity of $\Phi$, the limit satisfies $\bm{I}^{\star} = \Phi(\bm{I}^{\star})$.  Since $\bm{I}^{\star} \geq \varepsilon_0 \bm{v} > \bm{0}$, this is a nontrivial endemic equilibrium with $I_i^{\star} > 0$ for all~$i$.  The corresponding $(S_i^{\star}, V_i^{\star})$ are recovered from~\eqref{eq:endemic_SV}.
 
-\emph{Forward bifurcation.}  As $\mathcal{R}_0(L) \downarrow 1$, the threshold $\varepsilon_0$ in~(c) can be taken arbitrarily small, and Part~(i) shows that no nontrivial equilibrium exists at $\mathcal{R}_0(L) = 1$.  Hence $\|\bm{I}^{\star}\| \to 0$ continuously as $\mathcal{R}_0(L) \to 1^+$, confirming a forward (transcritical) bifurcation.  For the homogeneous case, the explicit quadratic characterization in Proposition~\ref{prop:endemic_homogeneous} provides an independent verification.
+\emph{Forward bifurcation.}  As $\mathcal{R}_0(L) \downarrow 1$, the threshold $\varepsilon_0$ in~(c) can be taken arbitrarily small, and Part~(i) shows that no nontrivial equilibrium exists at $\mathcal{R}_0(L) = 1$.  Hence $\|\bm{I}^{\star}\| \to 0$ continuously as $\mathcal{R}_0(L) \to 1^+$, confirming a forward bifurcation.  For the homogeneous case, the explicit quadratic characterization in Proposition~\ref{prop:endemic_homogeneous} provides an independent verification.
 \end{proof}
 
 The endemic equilibrium is characterized by the following system of self-consistency equations, obtained by setting all time derivatives in~\eqref{eq:meanfield} to zero.
@@ -607,6 +838,16 @@ b
 \]
 which is strictly positive since $\beta_1 > \beta_2 > 0$.  Thus the second root $I = -b/(\beta_1 \beta_2 k^2) < 0$ is negative, confirming that the endemic branch with $I^{\star} > 0$ exists only for $\mathcal{R}_0 > 1$ (forward bifurcation).
 \end{proof}
+
+
+
+
+
+
+
+
+
+
 
 
 \bibliography{refs}
