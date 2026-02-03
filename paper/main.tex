@@ -138,7 +138,7 @@ This study bridges this gap by formulating and solving a novel dynamic facility 
     \item \textbf{Computational experiments}: We demonstrate through extensive experiments that the learned \ac{RL} policy outperforms static baseline strategies across diverse epidemic scenarios, adapting facility configurations to evolving disease dynamics while balancing infection costs, vaccination costs, and operational expenses.
 \end{itemize}
 
-The remainder of this paper is organized as follows. Section~\ref{sec:LitRev} provides a comprehensive review of related literature spanning epidemic modeling, \ac{RL} for public health, dynamic facility location, and \ac{GNN} for combinatorial optimization. Section~\ref{sec:ProbStat} formally defines the problem, including the contact network representation, \ac{SIV} compartmental dynamics, spatial vaccination model, and cost structure. Section~\ref{sec:AnalyticalModelDev} develops the analytical mean-field approximation and characterizes equilibrium conditions. Section~\ref{sec:RLMethod} presents the proposed \ac{RL} methodology, including the heterogeneous \ac{GNN} architecture and training procedure. Section~\ref{sec:Experiments} reports computational experiments comparing the learned policy against baseline strategies. Finally, Section~\ref{sec:Conclusions} summarizes the findings and discusses directions for future research.
+The remainder of this paper is organized as follows. Section~\ref{sec:LitRev} provides a comprehensive review of related literature spanning epidemic modeling, \ac{RL} for public health, dynamic facility location, and \ac{GNN} for combinatorial optimization. Section~\ref{sec:ProbStat} formally defines the problem, including the contact network representation, \ac{SIV} compartmental dynamics, spatial vaccination model, and cost structure. Section~\ref{sec:AnalyticalModelDev} develops the analytical mean-field approximation and characterizes equilibrium conditions. Section~\ref{sec:Methodology} presents the proposed \ac{RL} methodology, including the heterogeneous \ac{GNN} architecture and training procedure. Section~\ref{sec:Experiments} reports computational experiments comparing the learned policy against baseline strategies. Finally, Section~\ref{sec:Conclusions} summarizes the findings and discusses directions for future research.
 
 \section{Literature Review} \label{sec:LitRev}
 
@@ -838,6 +838,148 @@ b
 \]
 which is strictly positive since $\beta_1 > \beta_2 > 0$.  Thus the second root $I = -b/(\beta_1 \beta_2 k^2) < 0$ is negative, confirming that the endemic branch with $I^{\star} > 0$ exists only for $\mathcal{R}_0 > 1$ (forward bifurcation).
 \end{proof}
+
+\section{Methodology} \label{sec:Methodology}
+The facility-operation problem studied in this paper is a dynamic control problem in which the action at decision epoch $t$ is the set of open facilities $L_t\subseteq\mathcal M$.  Facility decisions affect vaccination rates $\nu_i(L_t)$ and thereby influence the epidemic evolution during the subsequent decision interval.  In addition, each decision incurs switching costs (opening/closing) and operating costs.  This section presents an interpretable greedy baseline that explicitly accounts for all costs---opening/closing, operating, vaccination (counted as $S\to V$ vaccination administrations), and infection burden---while avoiding expensive Monte Carlo rollouts by using a fast \emph{spectral proxy} derived from the analytical threshold $\mathcal R_0(L)$.
+
+
+\subsection{Fast Spectral-Proxy H-step Greedy Rollout Baseline Policy} \label{subsec:GreedySpectralRollout}
+
+
+Let $t=1,2,\dots,T$ index discrete decision epochs, and let $\Delta>0$ denote the duration of one decision interval.  Let $\xi_t$ denote the simulator state at the beginning of epoch $t$ (e.g., the full node-level configuration $\bm X^t=(X_1^t,\dots,X_n^t)$).  The action at epoch $t$ is the facility set $L_t\subseteq\mathcal M$.  We also keep track of the previously open set $L_{t-1}$, since switching costs depend on changes relative to the prior configuration.
+
+Given $(\xi_t,L_{t-1})$ and an action $L_t$, we define the per-interval cost
+\begin{equation}\label{eq:stage_cost_greedy}
+c_t \;=\;
+f^+\bigl|L_t\setminus L_{t-1}\bigr| \;+\;
+f^-\bigl|L_{t-1}\setminus L_t\bigr|
+\;+\;
+C_O |L_t|
+\;+\;
+C_V\,N_{SV}^{(t)}
+\;+\;
+C_I\,N_I^{(t)} .
+\end{equation}
+Here $f^+$ and $f^-$ are one-time opening/closing costs, $C_O$ is the operating cost per open facility per interval, $N_{SV}^{(t)}$ is the number of vaccination administrations (state transitions $S\to V$ due to vaccination) during $[t,t+\Delta)$, and $N_I^{(t)}$ is the infection burden over that interval (e.g., end-of-interval prevalence $\sum_i \mathbf 1_{\{X_i^{t+\Delta}=I\}}$ or an integrated person-time burden).
+
+Because vaccination cost is charged per $S\to V$ vaccination event, we approximate the expected number of vaccination administrations in the next interval under a fixed facility set $L$ using competing exponential hazards (vaccination vs.\ infection) held constant over $[t,t+\Delta)$.  If $X_i^t=S$, define the instantaneous hazards
+\[
+h_{i}^{V}(L)=\nu_i(L),
+\qquad
+h_i^{I}(t)=\beta_1\,N_i^I(t),
+\qquad
+N_i^I(t)=\sum_{j\in\mathcal N_i}\mathbf 1_{\{X_j^t=I\}}.
+\]
+Approximating $h_i^{V}(L)$ and $h_i^{I}(t)$ as constant over the interval, the probability that node $i$ experiences a vaccination administration before infection within $\Delta$ is
+\begin{equation}\label{eq:pSV_proxy}
+p_{i,SV}(L\,|\,\xi_t)
+\;=\;
+\frac{h_i^{V}(L)}{h_i^{V}(L)+h_i^{I}(t)}
+\left(1-e^{-(h_i^{V}(L)+h_i^{I}(t))\Delta}\right),
+\qquad (X_i^t=S),
+\end{equation}
+(with the convention $p_{i,SV}=1-e^{-h_i^V(L)\Delta}$ if $h_i^{I}(t)=0$).
+Thus, the expected vaccination administrations per interval are approximated by
+\begin{equation}\label{eq:NSV_proxy}
+\widehat N_{SV}(L\,|\,\xi_t)
+\;=\;
+\sum_{i:\,X_i^t=S} p_{i,SV}(L\,|\,\xi_t).
+\end{equation}
+This proxy is fast to evaluate because it uses only the current infected-neighbor counts $N_i^I(t)$ and the vaccination rates $\nu_i(L)$ induced by $L$.
+
+To avoid Monte Carlo epidemic rollouts, we approximate the multi-step infection burden under a fixed facility set $L$ using the local linearization about the \ac{DFE}.  Recall from Theorem~\ref{thm:DFE_stability} that
+\[
+\mathcal R_0(L)=\frac{1}{\delta}\rho(\Lambda(L)A),
+\qquad
+\Lambda(L)=\mathrm{diag}(\lambda_1(L),\dots,\lambda_n(L)),
+\qquad
+\lambda_i(L)=\frac{\beta_1\omega+\beta_2\nu_i(L)}{\nu_i(L)+\omega}.
+\]
+Let
+\begin{equation}\label{eq:mu_def}
+\mu(L)\;=\;\rho(\Lambda(L)A),
+\qquad
+r(L)\;=\;\mu(L)-\delta,
+\qquad
+g(L)\;=\;e^{r(L)\Delta}.
+\end{equation}
+Under the linearized infection dynamics $\dot{\bm \iota}=(\Lambda(L)A-\delta I)\bm\iota$, the dominant mode grows/decays at rate $r(L)$; consequently, over one decision interval the infection magnitude is approximated to scale by $g(L)$.  Let $I_t$ denote the number of infected individuals at the start of epoch $t$,
+\[
+I_t \;=\;\sum_{i=1}^n \mathbf 1_{\{X_i^t=I\}}.
+\]
+We approximate the expected infection burden at $\ell$ intervals ahead by geometric growth/decay:
+\begin{equation}\label{eq:NI_proxy}
+\widehat N_I^{(t+\ell)}(L\,|\,\xi_t)
+\;=\;
+\min\{n,\; I_t\,g(L)^\ell\},
+\qquad \ell=0,1,\dots,H-1.
+\end{equation}
+The truncation at $n$ prevents the proxy from exceeding the population size when $g(L)>1$.
+
+Fix a discount factor $\gamma\in(0,1]$ and an $H$-step lookahead horizon.  For a candidate facility set $L$, we define the fast $H$-step proxy value
+\begin{equation}\label{eq:Qhat_spectral}
+\widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})
+\;=\;
+f^+\bigl|L\setminus L_{t-1}\bigr|
++f^-\bigl|L_{t-1}\setminus L\bigr|
++\sum_{\ell=0}^{H-1}\gamma^\ell\Big(
+C_O|L| + C_V\,\widehat N_{SV}(L\,|\,\xi_t) + C_I\,\widehat N_I^{(t+\ell)}(L\,|\,\xi_t)
+\Big).
+\end{equation}
+Under a \emph{hold} lookahead (the configuration is kept fixed as $L$ across the $H$ steps), the first two terms account for switching once at the current epoch, while operating and vaccination-administration costs scale linearly across the horizon, and infection burden compounds according to the spectral growth factor $g(L)$.  Using the geometric-sum notation
+\[
+S_H(x)=\sum_{\ell=0}^{H-1}x^\ell=
+\begin{cases}
+\dfrac{1-x^H}{1-x}, & x\neq 1,\\[6pt]
+H, & x=1,
+\end{cases}
+\]
+a convenient untruncated approximation (dropping the $\min\{n,\cdot\}$ in~\eqref{eq:NI_proxy}) is
+\begin{equation}\label{eq:Qhat_spectral_closed}
+\widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})
+\;\approx\;
+f^+\bigl|L\setminus L_{t-1}\bigr|
++f^-\bigl|L_{t-1}\setminus L\bigr|
++\bigl(C_O|L|+C_V\widehat N_{SV}(L\,|\,\xi_t)\bigr)S_H(\gamma)
++C_I I_t\,S_H(\gamma g(L)).
+\end{equation}
+This closed-form score is extremely fast to evaluate and captures the key multi-step effect: if $\mu(L)<\delta$ (equivalently $\mathcal R_0(L)<1$), then $g(L)<1$ and predicted infections decay geometrically; if $\mu(L)>\delta$, then $g(L)>1$ and infection burden grows over the horizon.
+
+Because $A$ is symmetric and $\Lambda(L)$ is diagonal with positive entries, $\mu(L)=\rho(\Lambda(L)A)$ equals the largest eigenvalue of the symmetric matrix $\Lambda(L)^{1/2}A\Lambda(L)^{1/2}$.  In practice, $\mu(L)$ can be approximated efficiently via a few iterations of power iteration, warm-started from the previous epoch's dominant eigenvector.  For additional speed, one may replace $\mu(L)$ by an upper bound (e.g., $\mu(L)\le \lambda_{\max}(L)\rho(A)$) when screening many toggles.
+
+Let $L\triangle\{m\}$ denote the symmetric difference, i.e., toggling facility $m$ (open it if closed; close it if open).  Starting from $L_{t-1}$, we repeatedly apply the single-facility toggle that most reduces the proxy value~\eqref{eq:Qhat_spectral} and stop when no single toggle improves the score.  This yields a one-flip stable configuration that balances switching/operating costs against predicted vaccination and infection costs over an $H$-step horizon. Algorithm \label{alg:H_step_greedy_spectral} outlines the fast H-step greedy policy using the spectral proxy.
+
+\begin{algorithm}[t]
+\caption{Fast H-step greedy policy using the spectral proxy}
+\label{alg:H_step_greedy_spectral}
+\begin{algorithmic}[1]
+\Require current simulator state $\xi_t$; previous facility set $L_{t-1}$; horizon $H$; discount $\gamma$; tolerance $\varepsilon\ge 0$
+\State $L \gets L_{t-1}$
+\State $J \gets \widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})$ using~\eqref{eq:Qhat_spectral} (or~\eqref{eq:Qhat_spectral_closed})
+\Repeat
+    \State $J_{\min}\gets J$; \quad $m^\star\gets \emptyset$
+    \ForAll{$m\in\mathcal M$}
+        \State $L_m \gets L\triangle\{m\}$
+        \State $J_m \gets \widehat Q_t^{(H)}(L_m\,|\,\xi_t,L_{t-1})$
+        \If{$J_m < J_{\min}$}
+            \State $J_{\min}\gets J_m$; \quad $m^\star\gets m$
+        \EndIf
+    \EndFor
+    \If{$J_{\min}\le J-\varepsilon$}
+        \State $L \gets L\triangle\{m^\star\}$; \quad $J\gets J_{\min}$
+    \EndIf
+\Until{$J_{\min} > J-\varepsilon$}
+\State \Return $L_t \gets L$
+\end{algorithmic}
+\end{algorithm}
+
+Two implementation notes are worth mentioning: First, precomputing all pairwise distances $\|z_i-m\|_2$ enables fast updates of $d_i(L)$ and $\nu_i(L)$ under toggles.  Likewise, $N_i^I(t)$ can be computed once per epoch from $\xi_t$. Second, the spectral proxy is motivated by the \ac{DFE} linearization and is most accurate when infection levels are moderate and the system is near the \ac{DFE} regime.  Empirically, it provides a strong fast baseline and a useful ``expert'' behavior for imitation; \ac{PPO} can later improve upon it by optimizing the full long-horizon stochastic objective.
+
+\begin{remark}[Using the greedy policy as an imitation target for \ac{PPO}] \label{rem:greedy_imitation_spectral}
+Algorithm~\ref{alg:H_step_greedy_spectral} defines a deterministic expert mapping from the agent's observation at epoch $t$ (including $\xi_t$ and $L_{t-1}$) to an action $L_t$.
+This expert can be used to generate a dataset of state--action pairs $\{(\mathrm{obs}_t, L_t^{\mathrm{greedy}})\}$ for behavior cloning initialization, or as an auxiliary imitation objective (e.g., cross-entropy/KL toward the expert) during \ac{PPO} training.  Because the expert uses the analytically grounded proxy $\mu(L)=\rho(\Lambda(L)A)$ to anticipate compounding infection costs over $H$ steps, it encodes a structured heuristic that \ac{PPO} can mimic and subsequently surpass by learning non-myopic switching behavior under the full simulator dynamics and cost model.
+\end{remark}
+
 
 
 
