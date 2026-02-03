@@ -840,13 +840,13 @@ which is strictly positive since $\beta_1 > \beta_2 > 0$.  Thus the second root 
 \end{proof}
 
 \section{Methodology} \label{sec:Methodology}
-The facility-operation problem studied in this paper is a dynamic control problem in which the action at decision epoch $t$ is the set of open facilities $L_t\subseteq\mathcal M$.  Facility decisions affect vaccination rates $\nu_i(L_t)$ and thereby influence the epidemic evolution during the subsequent decision interval.  In addition, each decision incurs switching costs (opening/closing) and operating costs.  This section presents an interpretable greedy baseline that explicitly accounts for all costs---opening/closing, operating, vaccination (counted as $S\to V$ vaccination administrations), and infection burden---while avoiding expensive Monte Carlo rollouts by using a fast \emph{spectral proxy} derived from the analytical threshold $\mathcal R_0(L)$.
+The facility-operation problem studied in this paper is a dynamic control problem in which the action at decision epoch $t$ is the set of open facilities $L_t\subseteq\mathcal M$. Facility decisions determine vaccination rates $\nu_i(L_t)$ and thereby influence the epidemic evolution during the subsequent decision interval. In addition, each decision incurs switching costs (opening/closing) and operating costs. 
 
+This section presents an interpretable greedy baseline that explicitly accounts for all costs---opening/closing, operating, vaccination (counted as $S\to V$ vaccination administrations), and infection burden---while avoiding expensive Monte Carlo rollouts by using a fast spectral proxy derived from the analytical threshold $\mathcal R_0(L)$. A key methodological contribution is that we use the analytical sensitivity results in Theorem~\ref{thm:R0_sensitivity} and Corollary~\ref{cor:R0_access_sensitivity} to \emph{order and screen} candidate facility toggles, so that the greedy search evaluates the most epidemiologically influential moves first. Finally, we introduce a \ac{PPO} algorithm that uses the greedy baseline as an expert (imitation target) for accelerated learning, and subsequently surpasses it by optimizing the full long-horizon objective.
 
 \subsection{Fast Spectral-Proxy H-step Greedy Rollout Baseline Policy} \label{subsec:GreedySpectralRollout}
 
-
-Let $t=1,2,\dots,T$ index discrete decision epochs, and let $\Delta>0$ denote the duration of one decision interval.  Let $\xi_t$ denote the simulator state at the beginning of epoch $t$ (e.g., the full node-level configuration $\bm X^t=(X_1^t,\dots,X_n^t)$).  The action at epoch $t$ is the facility set $L_t\subseteq\mathcal M$.  We also keep track of the previously open set $L_{t-1}$, since switching costs depend on changes relative to the prior configuration.
+Let $t=1,2,\dots,T$ index discrete decision epochs, and let $\Delta>0$ denote the duration of one decision interval. Let $\xi_t$ denote the simulator state at the beginning of epoch $t$ (e.g., the node-level configuration $\bm X^t=(X_1^t,\dots,X_n^t)$). The action at epoch $t$ is the facility set $L_t\subseteq\mathcal M$. We also keep track of the previously open set $L_{t-1}$, since switching costs depend on changes relative to the prior configuration.
 
 Given $(\xi_t,L_{t-1})$ and an action $L_t$, we define the per-interval cost
 \begin{equation}\label{eq:stage_cost_greedy}
@@ -862,7 +862,7 @@ C_I\,N_I^{(t)} .
 \end{equation}
 Here $f^+$ and $f^-$ are one-time opening/closing costs, $C_O$ is the operating cost per open facility per interval, $N_{SV}^{(t)}$ is the number of vaccination administrations (state transitions $S\to V$ due to vaccination) during $[t,t+\Delta)$, and $N_I^{(t)}$ is the infection burden over that interval (e.g., end-of-interval prevalence $\sum_i \mathbf 1_{\{X_i^{t+\Delta}=I\}}$ or an integrated person-time burden).
 
-Because vaccination cost is charged per $S\to V$ vaccination event, we approximate the expected number of vaccination administrations in the next interval under a fixed facility set $L$ using competing exponential hazards (vaccination vs.\ infection) held constant over $[t,t+\Delta)$.  If $X_i^t=S$, define the instantaneous hazards
+Because vaccination cost is charged per $S\to V$ vaccination event, we approximate the expected number of vaccination administrations in the next interval under a fixed facility set $L$ using competing exponential hazards (vaccination vs.\ infection) held constant over $[t,t+\Delta)$. If $X_i^t=S$, define the instantaneous hazards
 \[
 h_{i}^{V}(L)=\nu_i(L),
 \qquad
@@ -878,16 +878,14 @@ p_{i,SV}(L\,|\,\xi_t)
 \left(1-e^{-(h_i^{V}(L)+h_i^{I}(t))\Delta}\right),
 \qquad (X_i^t=S),
 \end{equation}
-(with the convention $p_{i,SV}=1-e^{-h_i^V(L)\Delta}$ if $h_i^{I}(t)=0$).
-Thus, the expected vaccination administrations per interval are approximated by
+(with the convention $p_{i,SV}=1-e^{-h_i^V(L)\Delta}$ if $h_i^{I}(t)=0$). Thus, the expected vaccination administrations per interval are approximated by
 \begin{equation}\label{eq:NSV_proxy}
 \widehat N_{SV}(L\,|\,\xi_t)
 \;=\;
 \sum_{i:\,X_i^t=S} p_{i,SV}(L\,|\,\xi_t).
 \end{equation}
-This proxy is fast to evaluate because it uses only the current infected-neighbor counts $N_i^I(t)$ and the vaccination rates $\nu_i(L)$ induced by $L$.
 
-To avoid Monte Carlo epidemic rollouts, we approximate the multi-step infection burden under a fixed facility set $L$ using the local linearization about the \ac{DFE}.  Recall from Theorem~\ref{thm:DFE_stability} that
+To avoid Monte Carlo epidemic rollouts, we approximate the multi-step infection burden under a fixed facility set $L$ using the local linearization about the \ac{DFE}. Recall from Theorem~\ref{thm:DFE_stability} that
 \[
 \mathcal R_0(L)=\frac{1}{\delta}\rho(\Lambda(L)A),
 \qquad
@@ -895,90 +893,154 @@ To avoid Monte Carlo epidemic rollouts, we approximate the multi-step infection 
 \qquad
 \lambda_i(L)=\frac{\beta_1\omega+\beta_2\nu_i(L)}{\nu_i(L)+\omega}.
 \]
-Let
-\begin{equation}\label{eq:mu_def}
+Define the dominant spectral quantity
+\begin{equation}\label{eq:mu_def_method}
 \mu(L)\;=\;\rho(\Lambda(L)A),
 \qquad
 r(L)\;=\;\mu(L)-\delta,
 \qquad
 g(L)\;=\;e^{r(L)\Delta}.
 \end{equation}
-Under the linearized infection dynamics $\dot{\bm \iota}=(\Lambda(L)A-\delta I)\bm\iota$, the dominant mode grows/decays at rate $r(L)$; consequently, over one decision interval the infection magnitude is approximated to scale by $g(L)$.  Let $I_t$ denote the number of infected individuals at the start of epoch $t$,
+Under the linearized infection dynamics $\dot{\bm \iota}=(\Lambda(L)A-\delta I)\bm\iota$, the dominant mode grows/decays at rate $r(L)$; consequently, over one decision interval the infection magnitude is approximated to scale by $g(L)$. Let $I_t$ denote the number of infected individuals at the start of epoch $t$:
 \[
 I_t \;=\;\sum_{i=1}^n \mathbf 1_{\{X_i^t=I\}}.
 \]
-We approximate the expected infection burden at $\ell$ intervals ahead by geometric growth/decay:
-\begin{equation}\label{eq:NI_proxy}
+We approximate the infection burden $\ell$ intervals ahead by geometric growth/decay:
+\begin{equation}\label{eq:NI_proxy_method}
 \widehat N_I^{(t+\ell)}(L\,|\,\xi_t)
 \;=\;
 \min\{n,\; I_t\,g(L)^\ell\},
 \qquad \ell=0,1,\dots,H-1.
 \end{equation}
-The truncation at $n$ prevents the proxy from exceeding the population size when $g(L)>1$.
 
-Fix a discount factor $\gamma\in(0,1]$ and an $H$-step lookahead horizon.  For a candidate facility set $L$, we define the fast $H$-step proxy value
-\begin{equation}\label{eq:Qhat_spectral}
-\widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})
-\;=\;
-f^+\bigl|L\setminus L_{t-1}\bigr|
-+f^-\bigl|L_{t-1}\setminus L\bigr|
-+\sum_{\ell=0}^{H-1}\gamma^\ell\Big(
-C_O|L| + C_V\,\widehat N_{SV}(L\,|\,\xi_t) + C_I\,\widehat N_I^{(t+\ell)}(L\,|\,\xi_t)
-\Big).
-\end{equation}
-Under a \emph{hold} lookahead (the configuration is kept fixed as $L$ across the $H$ steps), the first two terms account for switching once at the current epoch, while operating and vaccination-administration costs scale linearly across the horizon, and infection burden compounds according to the spectral growth factor $g(L)$.  Using the geometric-sum notation
-\[
-S_H(x)=\sum_{\ell=0}^{H-1}x^\ell=
-\begin{cases}
-\dfrac{1-x^H}{1-x}, & x\neq 1,\\[6pt]
-H, & x=1,
-\end{cases}
-\]
-a convenient untruncated approximation (dropping the $\min\{n,\cdot\}$ in~\eqref{eq:NI_proxy}) is
-\begin{equation}\label{eq:Qhat_spectral_closed}
+Fix a discount factor $\gamma\in(0,1]$ and an $H$-step lookahead horizon. Under a \emph{hold} lookahead (the configuration is kept fixed as $L$ across the $H$ steps), a convenient untruncated approximation is
+\begin{equation}\label{eq:Qhat_spectral_closed_method}
 \widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})
 \;\approx\;
 f^+\bigl|L\setminus L_{t-1}\bigr|
 +f^-\bigl|L_{t-1}\setminus L\bigr|
 +\bigl(C_O|L|+C_V\widehat N_{SV}(L\,|\,\xi_t)\bigr)S_H(\gamma)
-+C_I I_t\,S_H(\gamma g(L)).
++C_I I_t\,S_H(\gamma g(L)),
 \end{equation}
-This closed-form score is extremely fast to evaluate and captures the key multi-step effect: if $\mu(L)<\delta$ (equivalently $\mathcal R_0(L)<1$), then $g(L)<1$ and predicted infections decay geometrically; if $\mu(L)>\delta$, then $g(L)>1$ and infection burden grows over the horizon.
+where $S_H(x)=\sum_{\ell=0}^{H-1}x^\ell$.
 
-Because $A$ is symmetric and $\Lambda(L)$ is diagonal with positive entries, $\mu(L)=\rho(\Lambda(L)A)$ equals the largest eigenvalue of the symmetric matrix $\Lambda(L)^{1/2}A\Lambda(L)^{1/2}$.  In practice, $\mu(L)$ can be approximated efficiently via a few iterations of power iteration, warm-started from the previous epoch's dominant eigenvector.  For additional speed, one may replace $\mu(L)$ by an upper bound (e.g., $\mu(L)\le \lambda_{\max}(L)\rho(A)$) when screening many toggles.
+\subsubsection{Sensitivity-guided ordering and screening of facility toggles} \label{subsubsec:sensitivity_ordering}
 
-Let $L\triangle\{m\}$ denote the symmetric difference, i.e., toggling facility $m$ (open it if closed; close it if open).  Starting from $L_{t-1}$, we repeatedly apply the single-facility toggle that most reduces the proxy value~\eqref{eq:Qhat_spectral} and stop when no single toggle improves the score.  This yields a one-flip stable configuration that balances switching/operating costs against predicted vaccination and infection costs over an $H$-step horizon. Algorithm \label{alg:H_step_greedy_spectral} outlines the fast H-step greedy policy using the spectral proxy.
+A naive greedy local search evaluates all facility toggles in an arbitrary order. In contrast, we exploit Theorem~\ref{thm:R0_sensitivity} and Corollary~\ref{cor:R0_access_sensitivity} to evaluate toggles in a principled order: we prioritize moves with the largest predicted marginal reduction in $\mu(L)=\rho(\Lambda(L)A)$ (equivalently, in $\mathcal R_0(L)$), since $\mu(L)$ controls the compounding infection term $S_H(\gamma g(L))$ in~\eqref{eq:Qhat_spectral_closed_method}.
+
+Let $\bm v\gg 0$ and $\bm u\gg 0$ denote the right/left Perron eigenvectors of $\Lambda(L)A$,
+\[
+\Lambda(L)A\,\bm v=\mu(L)\bm v,
+\qquad
+\bm u^\top \Lambda(L)A=\mu(L)\bm u^\top,
+\qquad
+\bm u^\top \bm v=1.
+\]
+By Theorem~\ref{thm:R0_sensitivity} and Corollary~\ref{cor:R0_access_sensitivity}, the sensitivity of $\mu(L)$ to a marginal change in the access distance $d_i(L)$ is
+\begin{equation}\label{eq:dmu_ddi}
+\frac{\partial \mu(L)}{\partial d_i}
+=
+u_i\,(A\bm v)_i\;
+\frac{(\beta_1-\beta_2)\omega}{(\nu_i(L)+\omega)^2}\;
+\alpha\,(v_{\max}-v_{\min})e^{-\alpha d_i(L)}
+\;>\;0.
+\end{equation}
+Define the \emph{nodal importance weight}
+\begin{equation}\label{eq:kappa_i_def}
+\kappa_i(L)\;:=\;\frac{\partial \mu(L)}{\partial d_i}.
+\end{equation}
+Nodes with large $\kappa_i(L)$ are those for which improving access (reducing $d_i$) yields the largest first-order reduction in $\mu(L)$ and hence in the predicted infection growth factor $g(L)$.
+
+Let $d_{im}=\|z_i-m\|_2$ denote the distance from node $i$ to facility $m$. For the current configuration $L$, define $d_i(L)=\min_{m\in L} d_{im}$. Consider toggling a facility $m$:
+\begin{itemize}
+    \item \textbf{Opening move ($m\notin L$):} the new distance becomes $d_i(L\cup\{m\})=\min\{d_i(L),d_{im}\}$, so
+    \begin{equation}\label{eq:Delta_d_open}
+    \Delta d_i^{\mathrm{open}}(m)
+    :=
+    d_i(L\cup\{m\})-d_i(L)
+    =
+    \min\{d_i(L),d_{im}\}-d_i(L)
+    =
+    -\bigl[d_i(L)-d_{im}\bigr]_+,
+    \end{equation}
+    where $[x]_+=\max\{x,0\}$.
+    \item \textbf{Closing move ($m\in L$):} the new distance becomes $d_i(L\setminus\{m\})$, so
+    \begin{equation}\label{eq:Delta_d_close}
+    \Delta d_i^{\mathrm{close}}(m)
+    :=
+    d_i(L\setminus\{m\})-d_i(L)
+    \;\ge\;0.
+    \end{equation}
+    In implementation, $\Delta d_i^{\mathrm{close}}(m)$ can be computed efficiently by maintaining, for each node $i$, its nearest and second-nearest open facilities.
+\end{itemize}
+Using the first-order approximation $\Delta\mu \approx \sum_i (\partial\mu/\partial d_i)\Delta d_i$, we obtain the facility-level sensitivity score:
+\begin{equation}\label{eq:Delta_mu_facility}
+\Delta \mu_m
+\;\approx\;
+\sum_{i=1}^n \kappa_i(L)\,\Delta d_i(m),
+\end{equation}
+where $\Delta d_i(m)$ equals $\Delta d_i^{\mathrm{open}}(m)$ for an opening move and $\Delta d_i^{\mathrm{close}}(m)$ for a closing move.
+
+For each candidate toggle $m$, we compute the first-order estimate $\Delta\mu_m$ via~\eqref{eq:Delta_mu_facility} and form an \emph{approximate} post-toggle spectral value
+\begin{equation}\label{eq:mu_tilde_toggle}
+\widetilde\mu(L\triangle\{m\})
+\;:=\;
+\mu(L)+\Delta\mu_m,
+\qquad
+\widetilde g(L\triangle\{m\})
+\;:=\;
+\exp\!\bigl((\widetilde\mu(L\triangle\{m\})-\delta)\Delta\bigr).
+\end{equation}
+We then compute a cheap screened objective
+\begin{equation}\label{eq:Qtilde_screen}
+\widetilde Q_t^{(H)}(L\triangle\{m\}\,|\,\xi_t,L_{t-1})
+=
+f^+\bigl|(L\triangle\{m\})\setminus L_{t-1}\bigr|
++f^-\bigl|L_{t-1}\setminus (L\triangle\{m\})\bigr|
++\bigl(C_O|L\triangle\{m\}|+C_V\widehat N_{SV}(L\triangle\{m\}\,|\,\xi_t)\bigr)S_H(\gamma)
++C_I I_t\,S_H\!\bigl(\gamma \widetilde g(L\triangle\{m\})\bigr),
+\end{equation}
+and evaluate toggles in ascending order of $\widetilde Q_t^{(H)}$. Intuitively, opening candidates that substantially reduce weighted distances for high-$\kappa_i(L)$ nodes are examined first, while closing candidates that substantially increase weighted distances are deprioritized unless their cost savings dominate.
+
+\subsubsection{H-step greedy local search with sensitivity-ordered toggle evaluation} \label{subsubsec:greedy_algorithm}
+
+Let $L\triangle\{m\}$ denote symmetric difference (toggle facility $m$). Starting from $L_{t-1}$, we repeatedly apply the single toggle that most reduces the $H$-step proxy value and stop when no single toggle improves it. The sensitivity-guided ordering above determines \emph{which toggles are considered first}; optionally, we can restrict evaluation to the top $K_{\mathrm{eval}}$ toggles per iteration for additional speed (setting $K_{\mathrm{eval}}=|\mathcal M|$ recovers full evaluation).
 
 \begin{algorithm}[t]
-\caption{Fast H-step greedy policy using the spectral proxy}
-\label{alg:H_step_greedy_spectral}
+\caption{Sensitivity-ordered fast $H$-step greedy policy (spectral proxy)}
+\label{alg:H_step_greedy_spectral_sensitivity}
 \begin{algorithmic}[1]
-\Require current simulator state $\xi_t$; previous facility set $L_{t-1}$; horizon $H$; discount $\gamma$; tolerance $\varepsilon\ge 0$
+\Require current state $\xi_t$; previous set $L_{t-1}$; horizon $H$; discount $\gamma$; tolerance $\varepsilon\ge 0$; evaluation budget $K_{\mathrm{eval}}\in\{1,\dots,|\mathcal M|\}$
 \State $L \gets L_{t-1}$
-\State $J \gets \widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})$ using~\eqref{eq:Qhat_spectral} (or~\eqref{eq:Qhat_spectral_closed})
+\State Compute $\widehat Q \gets \widehat Q_t^{(H)}(L\,|\,\xi_t,L_{t-1})$ using~\eqref{eq:Qhat_spectral_closed_method} (with $\mu(L)$ computed by power iteration)
 \Repeat
-    \State $J_{\min}\gets J$; \quad $m^\star\gets \emptyset$
+    \State Compute Perron eigenvectors $(\bm u,\bm v)$ of $\Lambda(L)A$ and nodal weights $\kappa_i(L)$ via~\eqref{eq:dmu_ddi}--\eqref{eq:kappa_i_def}
     \ForAll{$m\in\mathcal M$}
-        \State $L_m \gets L\triangle\{m\}$
-        \State $J_m \gets \widehat Q_t^{(H)}(L_m\,|\,\xi_t,L_{t-1})$
-        \If{$J_m < J_{\min}$}
-            \State $J_{\min}\gets J_m$; \quad $m^\star\gets m$
+        \State Compute $\Delta d_i(m)$ (open/close) using~\eqref{eq:Delta_d_open}--\eqref{eq:Delta_d_close}
+        \State $\Delta\mu_m \gets \sum_{i=1}^n \kappa_i(L)\,\Delta d_i(m)$ \Comment{first-order change in $\mu$}
+        \State $\widetilde Q_m \gets \widetilde Q_t^{(H)}(L\triangle\{m\}\,|\,\xi_t,L_{t-1})$ using~\eqref{eq:Qtilde_screen}
+    \EndFor
+    \State Sort facilities to obtain an ordered list $(m_{(1)},m_{(2)},\dots)$ with $\widetilde Q_{m_{(1)}}\le \widetilde Q_{m_{(2)}}\le\cdots$
+    \State $\widehat Q_{\min}\gets \widehat Q$; \quad $m^\star\gets \emptyset$
+    \For{$k=1$ to $K_{\mathrm{eval}}$}
+        \State $m\gets m_{(k)}$; \quad $L_m \gets L\triangle\{m\}$
+        \State Compute $\widehat Q_m \gets \widehat Q_t^{(H)}(L_m\,|\,\xi_t,L_{t-1})$ using~\eqref{eq:Qhat_spectral_closed_method}
+        \If{$\widehat Q_m < \widehat Q_{\min}$}
+            \State $\widehat Q_{\min}\gets \widehat Q_m$; \quad $m^\star\gets m$
         \EndIf
     \EndFor
-    \If{$J_{\min}\le J-\varepsilon$}
-        \State $L \gets L\triangle\{m^\star\}$; \quad $J\gets J_{\min}$
+    \If{$\widehat Q_{\min} \le \widehat Q - \varepsilon$}
+        \State $L \gets L\triangle\{m^\star\}$; \quad $\widehat Q \gets \widehat Q_{\min}$
     \EndIf
-\Until{$J_{\min} > J-\varepsilon$}
+\Until{$\widehat Q_{\min} > \widehat Q - \varepsilon$}
 \State \Return $L_t \gets L$
 \end{algorithmic}
 \end{algorithm}
 
-Two implementation notes are worth mentioning: First, precomputing all pairwise distances $\|z_i-m\|_2$ enables fast updates of $d_i(L)$ and $\nu_i(L)$ under toggles.  Likewise, $N_i^I(t)$ can be computed once per epoch from $\xi_t$. Second, the spectral proxy is motivated by the \ac{DFE} linearization and is most accurate when infection levels are moderate and the system is near the \ac{DFE} regime.  Empirically, it provides a strong fast baseline and a useful ``expert'' behavior for imitation; \ac{PPO} can later improve upon it by optimizing the full long-horizon stochastic objective.
+The ordering induced by~\eqref{eq:dmu_ddi}--\eqref{eq:Qtilde_screen} prioritizes facility toggles that most reduce the dominant spectral quantity $\mu(L)=\rho(\Lambda(L)A)$, which in turn most reduces the compounding infection proxy $S_H(\gamma g(L))$ over the $H$-step horizon. Empirically this produces strong greedy actions while substantially reducing computation when $K_{\mathrm{eval}}\ll|\mathcal M|$.
 
-\begin{remark}[Using the greedy policy as an imitation target for \ac{PPO}] \label{rem:greedy_imitation_spectral}
-Algorithm~\ref{alg:H_step_greedy_spectral} defines a deterministic expert mapping from the agent's observation at epoch $t$ (including $\xi_t$ and $L_{t-1}$) to an action $L_t$.
-This expert can be used to generate a dataset of state--action pairs $\{(\mathrm{obs}_t, L_t^{\mathrm{greedy}})\}$ for behavior cloning initialization, or as an auxiliary imitation objective (e.g., cross-entropy/KL toward the expert) during \ac{PPO} training.  Because the expert uses the analytically grounded proxy $\mu(L)=\rho(\Lambda(L)A)$ to anticipate compounding infection costs over $H$ steps, it encodes a structured heuristic that \ac{PPO} can mimic and subsequently surpass by learning non-myopic switching behavior under the full simulator dynamics and cost model.
-\end{remark}
+Algorithm~\ref{alg:H_step_greedy_spectral_sensitivity} defines a structured expert policy with a transparent decision rule. Because sensitivity ordering makes the search consistent and focuses on epidemiologically meaningful moves, it provides a stable expert behavior that is well-suited for imitation (e.g., behavior cloning initialization or auxiliary imitation losses) before \ac{PPO} continues training to exceed the expert by optimizing the full long-horizon stochastic objective.
+
 
 
 
